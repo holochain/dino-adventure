@@ -1,0 +1,21 @@
+manifest_version: '1'
+name: dino_adventure
+integrity:
+  network_seed: null
+  properties: null
+  origin_time: 1738182327618464
+  zomes:
+  - name: dino_adventure_integrity
+    hash: null
+    bundled: '../../../target/wasm32-unknown-unknown/release/dino_adventure_integrity.wasm'
+    dependencies: null
+    dylib: null
+coordinator:
+  zomes:
+  - name: dino_adventure
+    hash: null
+    bundled: '../../../target/wasm32-unknown-unknown/release/dino_adventure.wasm'
+    dependencies:
+    - name: dino_adventure_integrity
+    dylib: null
+lineage: []

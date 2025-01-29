@@ -1,0 +1,20 @@
+[profile.dev]
+opt-level = "z"
+
+[profile.release]
+opt-level = "z"
+
+[workspace]
+members = ["dnas/*/zomes/coordinator/*", "dnas/*/zomes/integrity/*"]
+resolver = "2"
+
+[workspace.dependencies]
+hdi = "=0.5.0"
+hdk = "=0.4.0"
+serde = "1.0"
+
+[workspace.dependencies.dino_adventure]
+path = "dnas/dino_adventure/zomes/coordinator/dino_adventure"
+
+[workspace.dependencies.dino_adventure_integrity]
+path = "dnas/dino_adventure/zomes/integrity/dino_adventure"

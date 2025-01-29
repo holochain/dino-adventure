@@ -1,0 +1,13 @@
+[package]
+name = "dino_adventure"
+version = "0.0.1"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+name = "dino_adventure"
+
+[dependencies]
+hdk = { workspace = true }
+serde = { workspace = true }
+dino_adventure_integrity = { workspace = true }
