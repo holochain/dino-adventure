@@ -6,14 +6,18 @@ let isConnected = $state(false);
 
 export const getIsConnected = () => isConnected;
 
-export const setIsConnected = (value: boolean) => isConnected = value;
-
 export const callZome = async <T>(request: AppCallZomeRequest): Promise<T> => {
+    console.log('Calling zome', request);
+    console.log('connected?', isConnected);
+    console.log('client', client);
     if (!client) {
+        console.log('reconnecting');
         client = await AppWebsocket.connect();
+        console.log('reconnected');
     }
 
     isConnected = true;
+    console.log('now connected?', isConnected);
 
     try {
         return (await client.callZome(request)) as T

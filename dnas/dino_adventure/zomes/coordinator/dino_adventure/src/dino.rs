@@ -1,12 +1,10 @@
+use crate::types::AuthoredDino;
 use dino_adventure_integrity::*;
 use hdk::prelude::*;
 
 #[hdk_extern]
-pub fn create_dino(dino: Dino) -> ExternResult<Record> {
+pub fn create_dino(dino: Dino) -> ExternResult<AuthoredDino> {
     let dino_hash = create_entry(&EntryTypes::Dino(dino.clone()))?;
-    let record = get(dino_hash.clone(), GetOptions::default())?.ok_or(wasm_error!(
-        WasmErrorInner::Guest("Could not find the newly created Dino".to_string())
-    ))?;
     let path = Path::from("all_dinos");
     create_link(
         path.path_entry_hash()?,
@@ -14,7 +12,11 @@ pub fn create_dino(dino: Dino) -> ExternResult<Record> {
         LinkTypes::AllDinos,
         (),
     )?;
-    Ok(record)
+
+    let record = get(dino_hash.clone(), GetOptions::local())?.ok_or(wasm_error!(
+        WasmErrorInner::Guest("Could not find the newly created Dino".to_string())
+    ))?;
+    record.try_into()
 }
 
 #[hdk_extern]

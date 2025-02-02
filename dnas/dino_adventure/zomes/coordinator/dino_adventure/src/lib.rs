@@ -1,7 +1,9 @@
-pub mod all_dinos;
-pub mod dino;
 use dino_adventure_integrity::*;
 use hdk::prelude::*;
+
+mod all_dinos;
+mod dino;
+mod types;
 
 // Called the first time a zome call is made to the cell containing this zome
 #[hdk_extern]

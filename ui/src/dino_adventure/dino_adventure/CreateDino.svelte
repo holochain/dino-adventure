@@ -1,60 +1,56 @@
 <script lang="ts">
-import type { ActionHash, AgentPubKey, AppClient, DnaHash, EntryHash, HolochainError, Record } from "@holochain/client";
-import { createEventDispatcher, getContext, onMount } from "svelte";
-import { type ClientContext, clientContext } from "../../contexts";
-import type { Dino, DinoKind } from "./types";
 
-const dispatch = createEventDispatcher();
-let client: AppClient;
-const appClientContext = getContext<ClientContext>(clientContext);
+    import {createDino} from "../../api";
+    import {DinoKinds} from "./types";
+    import Dino from "../../components/Dino.svelte";
 
-let name: string = "";
-let dinoKind: DinoKind = { type: "Apatosaurus" };
-
-$: name, dinoKind;
-$: isDinoValid = true && name !== "" && true;
-
-onMount(async () => {
-  client = await appClientContext.getClient();
-});
-
-async function createDino() {
-  const dinoEntry: Dino = {
-    name: name!,
-    dino_kind: dinoKind!,
-  };
-
-  try {
-    const record: Record = await client.callZome({
-      cap_secret: null,
-      role_name: "dino_adventure",
-      zome_name: "dino_adventure",
-      fn_name: "create_dino",
-      payload: dinoEntry,
-    });
-    dispatch("dino-created", { dinoHash: record.signed_action.hashed.hash });
-  } catch (e) {
-    alert((e as HolochainError).message);
-  }
-}
+    let name = $state("");
+    let dinoKind = $state("");
 </script>
 
 <div>
-  <h3>Create Dino</h3>
+    <div class="flex flex-row justify-center my-2">
+        <h2>Create Dino</h2>
+    </div>
 
-  <div>
-    <label for="Name">Name</label>
-    <input name="Name" bind:value={name} required />
-  </div>
-  <div>
-    <label for="Dino Kind">Dino Kind:</label>
-    <select name="Dino Kind" bind:value={dinoKind?.type}>
-      <option value="Apatosaurus">Apatosaurus</option>
-      <option value="Spinosaurus">Spinosaurus</option>
-    </select>
-  </div>
+    <div class="grid grid-cols-2 gap-2">
+        <div class="flex flex-col items-center h-32">
+            <input type="text" placeholder="Name" class="input my-2" bind:value={name} required/>
 
-  <button disabled={!isDinoValid} on:click={() => createDino()}>
-    Create Dino
-  </button>
+            <select class="select my-2" name="Dino Kind" bind:value={dinoKind}>
+                <option disabled selected value="">What kind of dinosaur?</option>
+                {#each DinoKinds as kind}
+                    <option>{kind}</option>
+                {/each}
+            </select>
+        </div>
+        <div class="flex flex-col h-32 items-center justify-center">
+            {#if name === ""}
+                <p>Give your Dino a name!</p>
+            {:else if dinoKind === ""}
+                <p>and a kind</p>
+            {:else}
+                <Dino authoredDino={{
+        dino: {
+          name: name,
+          dino_kind: {
+            type: dinoKind
+          }
+        }
+      }}/>
+            {/if}
+
+        </div>
+    </div>
+
+    <div class="flex flex-row justify-center my-2">
+        <button class="btn btn-primary" disabled={name === "" || dinoKind === ""} onclick={() => createDino({
+        name: name,
+        dino_kind: {
+          type: dinoKind
+        },
+      })}>
+            Create Dino
+        </button>
+    </div>
 </div>

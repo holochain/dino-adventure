@@ -3,8 +3,21 @@ use hdi::prelude::*;
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(tag = "type")]
 pub enum DinoKind {
+    Allosaurus,
+    Ankylosaurus,
     Apatosaurus,
+    Archaeopteryx,
+    Brachiosaurus,
+    Corythosaurus,
+    Dilophosaurus,
+    Dimorphodon,
+    Elasmosaurus,
+    Mosasaurus,
     Spinosaurus,
+    Stegosaurus,
+    Triceratops,
+    TyrannosaurusRex,
+    Velociraptor,
 }
 
 #[derive(Clone, PartialEq)]
