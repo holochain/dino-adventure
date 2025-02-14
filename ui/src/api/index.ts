@@ -1,3 +1,3 @@
 
-export { getIsConnected } from './common.svelte'
-export * from './dino';
+export { getIsConnected, getAgentPubKeyB64 } from './common.svelte'
+export * from './dino.svelte';

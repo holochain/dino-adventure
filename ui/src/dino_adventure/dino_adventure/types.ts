@@ -57,9 +57,9 @@ export const DinoKinds = [
     "Triceratops",
     "TyrannosaurusRex",
     "Velociraptor",
-];
+] as const;
 
-export type DinoKind = { type: keyof typeof DinoKinds };
+export type DinoKind = { type: typeof DinoKinds[number] };
 
 export interface Dino {
     name: string;

@@ -1,5 +1,4 @@
 <script lang="ts">
-
     import {createDino} from "../../api";
     import {DinoKinds} from "./types";
     import Dino from "../../components/Dino.svelte";
@@ -10,7 +9,7 @@
 
 <div>
     <div class="flex flex-row justify-center my-2">
-        <h2>Create Dino</h2>
+        <h2>Create a Dino</h2>
     </div>
 
     <div class="grid grid-cols-2 gap-2">

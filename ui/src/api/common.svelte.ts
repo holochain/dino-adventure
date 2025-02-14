@@ -1,23 +1,33 @@
-import {AppWebsocket, HolochainError, type AppCallZomeRequest} from "@holochain/client";
+import {
+    AppWebsocket,
+    HolochainError,
+    type AppCallZomeRequest,
+    type Signal,
+    SignalType,
+    type SignedActionHashed,
+    type Action, type AgentPubKey, encodeHashToBase64
+} from "@holochain/client";
+import type {DinoAdventureSignal} from "../dino_adventure/dino_adventure/types";
 
 let client: AppWebsocket | null = null;
 
+
 let isConnected = $state(false);
+
+let myPubKeyB64 = $state("");
 
 export const getIsConnected = () => isConnected;
 
+export const getAgentPubKeyB64 = () => myPubKeyB64;
+
 export const callZome = async <T>(request: AppCallZomeRequest): Promise<T> => {
-    console.log('Calling zome', request);
-    console.log('connected?', isConnected);
-    console.log('client', client);
     if (!client) {
-        console.log('reconnecting');
         client = await AppWebsocket.connect();
-        console.log('reconnected');
+        client.on("signal", signalHandler.handleSignal);
     }
 
     isConnected = true;
-    console.log('now connected?', isConnected);
+    myPubKeyB64 = encodeHashToBase64(client.myPubKey);
 
     try {
         return (await client.callZome(request)) as T
@@ -33,3 +43,42 @@ export const callZome = async <T>(request: AppCallZomeRequest): Promise<T> => {
         throw e;
     }
 }
+
+export type SignalHandlerCb<T> = (value: T, action: SignedActionHashed) => void;
+
+export class SignalHandler {
+    private store: { [key: string]: SignalHandlerCb<unknown> } = {};
+
+    constructor() {
+        this.handleSignal = this.handleSignal.bind(this);
+    }
+
+    handleSignal(signal: Signal) {
+        if (SignalType.App in signal) {
+            const appSignal = signal[SignalType.App];
+
+            const payload = appSignal.payload as DinoAdventureSignal;
+
+            switch (appSignal.zome_name) {
+            case "dino_adventure":
+                switch (payload.type) {
+                    case "EntryCreated":
+                        const handler = this.store[`${appSignal.zome_name}:${payload.type}:${payload.app_entry.type}`];
+                        if (handler) {
+                            handler(payload.app_entry, payload.action);
+                        }
+
+                        break;
+                }
+
+                break;
+            }
+        }
+    }
+
+    addSignalHandler<T>(name: string, cb: SignalHandlerCb<T>) {
+        this.store[name] = cb as SignalHandlerCb<unknown>;
+    }
+}
+
+export const signalHandler = new SignalHandler();
