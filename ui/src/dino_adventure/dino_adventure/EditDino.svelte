@@ -37,7 +37,6 @@ async function updateDino() {
 
   try {
     const updateRecord: Record = await client.callZome({
-      cap_secret: null,
       role_name: "dino_adventure",
       zome_name: "dino_adventure",
       fn_name: "update_dino",

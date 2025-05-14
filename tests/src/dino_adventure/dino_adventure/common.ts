@@ -1,5 +1,5 @@
 import {
-  ActionHash,
+  ActionHash, type AgentPubKey,
   AppBundleSource,
   fakeActionHash,
   fakeAgentPubKey,
@@ -11,6 +11,17 @@ import {
 } from "@holochain/client";
 import { CallableCell } from "@holochain/tryorama";
 
+export interface Dino {
+  name: string;
+  dino_kind: string;
+}
+
+export interface AuthoredDino {
+  dino: Dino;
+  author: AgentPubKey;
+  address: ActionHash;
+}
+
 export async function sampleDino(cell: CallableCell, partialDino = {}) {
   return {
     ...{
@@ -21,8 +32,8 @@ export async function sampleDino(cell: CallableCell, partialDino = {}) {
   };
 }
 
-export async function createDino(cell: CallableCell, dino = undefined): Promise<Record> {
-  return cell.callZome({
+export async function createDino(cell: CallableCell, dino = undefined): Promise<AuthoredDino> {
+  return await cell.callZome({
     zome_name: "dino_adventure",
     fn_name: "create_dino",
     payload: dino || await sampleDino(cell),

@@ -32,7 +32,6 @@ async function fetchDino() {
   loading = true;
   try {
     record = await client.callZome({
-      cap_secret: null,
       role_name: "dino_adventure",
       zome_name: "dino_adventure",
       fn_name: "get_latest_dino",
@@ -51,7 +50,6 @@ async function fetchDino() {
 async function deleteDino() {
   try {
     await client.callZome({
-      cap_secret: null,
       role_name: "dino_adventure",
       zome_name: "dino_adventure",
       fn_name: "delete_dino",

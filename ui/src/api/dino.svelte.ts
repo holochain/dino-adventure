@@ -1,4 +1,4 @@
-import type {AuthoredDino, Dino, DinoKind} from "../dino_adventure/dino_adventure/types";
+import type {AuthoredDino, Dino} from "../dino_adventure/dino_adventure/types";
 import {callZome, signalHandler} from "./common.svelte";
 import type {SignedActionHashed} from "@holochain/client";
 
@@ -15,7 +15,6 @@ export const createDino = async (dino: Dino): Promise<AuthoredDino> => {
         role_name: "dino_adventure",
         zome_name: "dino_adventure",
         fn_name: "create_dino",
-        cap_secret: null,
         payload: dino,
     })
 }
@@ -25,7 +24,6 @@ export const getAllDinos = async (): Promise<AuthoredDino[]> => {
         role_name: "dino_adventure",
         zome_name: "dino_adventure",
         fn_name: "get_all_dinos",
-        cap_secret: null,
         payload: null,
     });
 

@@ -5,6 +5,7 @@
     import CreateDino from "./dino_adventure/dino_adventure/CreateDino.svelte";
     import DinoGathering from "./components/DinoGathering.svelte";
     import {encodeHashToBase64} from "@holochain/client";
+    import PeerInfo from "./components/PeerInfo.svelte";
 
     let hasNoDinos = $derived(getDinoState().find(d => encodeHashToBase64(d.author) === getAgentPubKeyB64()) === undefined);
 </script>
@@ -31,7 +32,8 @@
 
     <a class="absolute bottom-2 left-2" href="https://www.flaticon.com/free-icons/dinosaur" title="dinosaur icons">Dinosaur icons created by max.icons - Flaticon</a>
 
-    <div class="status-position">
+    <div class="flex flex-row gap-3 status-position">
+        <PeerInfo />
         <Connected />
     </div>
 </main>

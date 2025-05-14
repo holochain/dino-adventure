@@ -16,7 +16,7 @@ import {
 import { CallableCell, dhtSync, runScenario } from "@holochain/tryorama";
 import { decode } from "@msgpack/msgpack";
 
-import { createDino, sampleDino } from "./common.js";
+import {AuthoredDino, createDino, sampleDino} from "./common.js";
 
 test("create Dino", async () => {
   await runScenario(async scenario => {
@@ -25,7 +25,7 @@ test("create Dino", async () => {
     const testAppPath = process.cwd() + "/../workdir/DinoAdventure.happ";
 
     // Set up the app to be installed
-    const appSource = { appBundleSource: { path: testAppPath } };
+    const appSource = { appBundleSource: { type: "path", value: testAppPath } };
 
     // Add 2 players with the test app to the Scenario. The returned players
     // can be destructured.
@@ -48,7 +48,7 @@ test("create and read Dino", async () => {
     const testAppPath = process.cwd() + "/../workdir/DinoAdventure.happ";
 
     // Set up the app to be installed
-    const appSource = { appBundleSource: { path: testAppPath } };
+    const appSource = { appBundleSource: { type: "path", value: testAppPath } };
 
     // Add 2 players with the test app to the Scenario. The returned players
     // can be destructured.
@@ -61,7 +61,7 @@ test("create and read Dino", async () => {
     const sample = await sampleDino(alice.cells[0]);
 
     // Alice creates a Dino
-    const record: Record = await createDino(alice.cells[0], sample);
+    const record: AuthoredDino = await createDino(alice.cells[0], sample);
     assert.ok(record);
 
     // Wait for the created entry to be propagated to the other node.
@@ -71,7 +71,7 @@ test("create and read Dino", async () => {
     const createReadOutput: Record = await bob.cells[0].callZome({
       zome_name: "dino_adventure",
       fn_name: "get_original_dino",
-      payload: record.signed_action.hashed.hash,
+      payload: record.address,
     });
     assert.deepEqual(sample, decode((createReadOutput.entry as any).Present.entry) as any);
   });
@@ -84,10 +84,10 @@ test("create and update Dino", async () => {
     const testAppPath = process.cwd() + "/../workdir/DinoAdventure.happ";
 
     // Set up the app to be installed
-    const appSource = { appBundleSource: { path: testAppPath } };
+    const appSource = { appBundleSource: { type: "path", value: testAppPath } };
 
     // Add 2 players with the test app to the Scenario. The returned players
-    // can be destructured.
+    // can be destructured.We just haven't understood it well enough or not implemented it correctly.
     const [alice, bob] = await scenario.addPlayersWithApps([appSource, appSource]);
 
     // Shortcut peer discovery through gossip and register all agents in every
@@ -95,10 +95,10 @@ test("create and update Dino", async () => {
     await scenario.shareAllAgents();
 
     // Alice creates a Dino
-    const record: Record = await createDino(alice.cells[0]);
-    assert.ok(record);
+    const authoredDino = await createDino(alice.cells[0]);
+    assert.ok(authoredDino);
 
-    const originalActionHash = record.signed_action.hashed.hash;
+    const originalActionHash = authoredDino.address;
 
     // Alice updates the Dino
     let contentUpdate: any = await sampleDino(alice.cells[0]);
@@ -170,7 +170,7 @@ test("create and delete Dino", async () => {
     const testAppPath = process.cwd() + "/../workdir/DinoAdventure.happ";
 
     // Set up the app to be installed
-    const appSource = { appBundleSource: { path: testAppPath } };
+    const appSource = { appBundleSource: { type: "path", value: testAppPath } };
 
     // Add 2 players with the test app to the Scenario. The returned players
     // can be destructured.
@@ -183,8 +183,8 @@ test("create and delete Dino", async () => {
     const sample = await sampleDino(alice.cells[0]);
 
     // Alice creates a Dino
-    const record: Record = await createDino(alice.cells[0], sample);
-    assert.ok(record);
+    const authoredDino = await createDino(alice.cells[0], sample);
+    assert.ok(authoredDino);
 
     await dhtSync([alice, bob], alice.cells[0].cell_id[0]);
 
@@ -192,7 +192,7 @@ test("create and delete Dino", async () => {
     const deleteActionHash = await alice.cells[0].callZome({
       zome_name: "dino_adventure",
       fn_name: "delete_dino",
-      payload: record.signed_action.hashed.hash,
+      payload: authoredDino.address,
     });
     assert.ok(deleteActionHash);
 
@@ -203,7 +203,7 @@ test("create and delete Dino", async () => {
     const oldestDeleteForDino: SignedActionHashed = await bob.cells[0].callZome({
       zome_name: "dino_adventure",
       fn_name: "get_oldest_delete_for_dino",
-      payload: record.signed_action.hashed.hash,
+      payload: authoredDino.address,
     });
     assert.ok(oldestDeleteForDino);
 
@@ -211,7 +211,7 @@ test("create and delete Dino", async () => {
     const deletesForDino: SignedActionHashed[] = await bob.cells[0].callZome({
       zome_name: "dino_adventure",
       fn_name: "get_all_deletes_for_dino",
-      payload: record.signed_action.hashed.hash,
+      payload: authoredDino.address,
     });
     assert.equal(deletesForDino.length, 1);
   });

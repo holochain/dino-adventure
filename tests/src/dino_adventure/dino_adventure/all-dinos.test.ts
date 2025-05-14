@@ -13,7 +13,7 @@ import {
 import { CallableCell, dhtSync, runScenario } from "@holochain/tryorama";
 import { decode } from "@msgpack/msgpack";
 
-import { createDino } from "./common.js";
+import { createDino, type AuthoredDino } from "./common.js";
 
 test("create a Dino and get all dinos", async () => {
   await runScenario(async scenario => {
@@ -22,7 +22,7 @@ test("create a Dino and get all dinos", async () => {
     const testAppPath = process.cwd() + "/../workdir/DinoAdventure.happ";
 
     // Set up the app to be installed
-    const appSource = { appBundleSource: { path: testAppPath } };
+    const appSource = { appBundleSource: { type: "path", value: testAppPath } };
 
     // Add 2 players with the test app to the Scenario. The returned players
     // can be destructured.
@@ -33,7 +33,7 @@ test("create a Dino and get all dinos", async () => {
     await scenario.shareAllAgents();
 
     // Bob gets all dinos
-    let collectionOutput: Link[] = await bob.cells[0].callZome({
+    let collectionOutput = await bob.cells[0].callZome<AuthoredDino[]>({
       zome_name: "dino_adventure",
       fn_name: "get_all_dinos",
       payload: null,
@@ -41,31 +41,31 @@ test("create a Dino and get all dinos", async () => {
     assert.equal(collectionOutput.length, 0);
 
     // Alice creates a Dino
-    const createRecord: Record = await createDino(alice.cells[0]);
-    assert.ok(createRecord);
+    const authoredDino = await createDino(alice.cells[0]);
+    assert.ok(authoredDino);
 
     await dhtSync([alice, bob], alice.cells[0].cell_id[0]);
 
     // Bob gets all dinos again
-    collectionOutput = await bob.cells[0].callZome({
+    collectionOutput = await bob.cells[0].callZome<AuthoredDino[]>({
       zome_name: "dino_adventure",
       fn_name: "get_all_dinos",
       payload: null,
     });
     assert.equal(collectionOutput.length, 1);
-    assert.deepEqual(createRecord.signed_action.hashed.hash, collectionOutput[0].target);
+    assert.deepEqual(authoredDino, collectionOutput[0]);
 
     // Alice deletes the Dino
     await alice.cells[0].callZome({
       zome_name: "dino_adventure",
       fn_name: "delete_dino",
-      payload: createRecord.signed_action.hashed.hash,
+      payload: authoredDino.address,
     });
 
     await dhtSync([alice, bob], alice.cells[0].cell_id[0]);
 
     // Bob gets all dinos again
-    collectionOutput = await bob.cells[0].callZome({
+    collectionOutput = await bob.cells[0].callZome<AuthoredDino[]>({
       zome_name: "dino_adventure",
       fn_name: "get_all_dinos",
       payload: null,

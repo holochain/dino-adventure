@@ -1,16 +1,15 @@
 import {
     AppWebsocket,
     HolochainError,
-    type AppCallZomeRequest,
+    type CallZomeRequest,
+    type RoleNameCallZomeRequest,
     type Signal,
-    SignalType,
     type SignedActionHashed,
-    type Action, type AgentPubKey, encodeHashToBase64
+    encodeHashToBase64
 } from "@holochain/client";
 import type {DinoAdventureSignal} from "../dino_adventure/dino_adventure/types";
 
 let client: AppWebsocket | null = null;
-
 
 let isConnected = $state(false);
 
@@ -20,7 +19,7 @@ export const getIsConnected = () => isConnected;
 
 export const getAgentPubKeyB64 = () => myPubKeyB64;
 
-export const callZome = async <T>(request: AppCallZomeRequest): Promise<T> => {
+export const runOnClient = async <T>(cb: (client: AppWebsocket) => Promise<T>): Promise<T> => {
     if (!client) {
         client = await AppWebsocket.connect();
         client.on("signal", signalHandler.handleSignal);
@@ -30,7 +29,7 @@ export const callZome = async <T>(request: AppCallZomeRequest): Promise<T> => {
     myPubKeyB64 = encodeHashToBase64(client.myPubKey);
 
     try {
-        return (await client.callZome(request)) as T
+        return await cb(client);
     } catch (e) {
         if (e instanceof HolochainError) {
             if (e.name == 'ConnectionError') {
@@ -42,6 +41,12 @@ export const callZome = async <T>(request: AppCallZomeRequest): Promise<T> => {
 
         throw e;
     }
+};
+
+export const callZome = async <T>(request: CallZomeRequest | RoleNameCallZomeRequest): Promise<T> => {
+    return runOnClient<T>(async (client) => {
+        return await client.callZome<T>(request)
+    })
 }
 
 export type SignalHandlerCb<T> = (value: T, action: SignedActionHashed) => void;
@@ -54,8 +59,8 @@ export class SignalHandler {
     }
 
     handleSignal(signal: Signal) {
-        if (SignalType.App in signal) {
-            const appSignal = signal[SignalType.App];
+        if (signal.type == "app") {
+            const appSignal = signal.value;
 
             const payload = appSignal.payload as DinoAdventureSignal;
 

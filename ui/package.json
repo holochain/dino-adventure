@@ -8,11 +8,11 @@
     "package": "npm run build && rimraf dist.zip && cd dist && bestzip ../dist.zip *"
   },
   "dependencies": {
-    "@holochain/client": "^0.18.0",
-    "@msgpack/msgpack": "^2.8.0"
+    "@holochain/client": "^0.19.0",
+    "@msgpack/msgpack": "^3.1.1"
   },
   "devDependencies": {
-    "@sveltejs/kit": "^2.0.0",
+    "@sveltejs/kit": "^2.21.0",
     "@sveltejs/vite-plugin-svelte": "^5.0.0",
     "@tailwindcss/vite": "^4.0.2",
     "@tsconfig/svelte": "^5.0.0",

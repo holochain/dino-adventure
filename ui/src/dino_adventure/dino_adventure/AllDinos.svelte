@@ -1,15 +1,10 @@
 <script lang="ts">
 import type {
   ActionHash,
-  AgentPubKey,
   AppClient,
-  EntryHash,
   HolochainError,
   Link,
-  NewEntryAction,
-  Record,
 } from "@holochain/client";
-import { SignalType } from "@holochain/client";
 import { getContext, onMount } from "svelte";
 import { type ClientContext, clientContext } from "../../contexts";
 import DinoDetail from "./DinoDetail.svelte";
@@ -28,9 +23,9 @@ onMount(async () => {
   client = await appClientContext.getClient();
   await fetchDinos();
   client.on("signal", signal => {
-    if (!(SignalType.App in signal)) return;
-    if (signal.App.zome_name !== "dino_adventure") return;
-    const payload = signal.App.payload as DinoAdventureSignal;
+    if (signal.type != "app") return;
+    if (signal.value.zome_name !== "dino_adventure") return;
+    const payload = signal.value.payload as DinoAdventureSignal;
     if (payload.type !== "EntryCreated") return;
     if (payload.app_entry.type !== "Dino") return;
     hashes = [...hashes, payload.action.hashed.hash];
@@ -41,7 +36,6 @@ async function fetchDinos() {
   loading = true;
   try {
     const links: Array<Link> = await client.callZome({
-      cap_secret: null,
       role_name: "dino_adventure",
       zome_name: "dino_adventure",
       fn_name: "get_all_dinos",
