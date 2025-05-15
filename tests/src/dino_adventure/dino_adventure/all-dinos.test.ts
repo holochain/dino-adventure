@@ -16,7 +16,7 @@ import { decode } from "@msgpack/msgpack";
 import { createDino, type AuthoredDino } from "./common.js";
 
 test("create a Dino and get all dinos", async () => {
-  await runScenario(async scenario => {
+  await runScenario(async (scenario) => {
     // Construct proper paths for your app.
     // This assumes app bundle created by the `hc app pack` command.
     const testAppPath = process.cwd() + "/../workdir/DinoAdventure.happ";
@@ -26,7 +26,10 @@ test("create a Dino and get all dinos", async () => {
 
     // Add 2 players with the test app to the Scenario. The returned players
     // can be destructured.
-    const [alice, bob] = await scenario.addPlayersWithApps([appSource, appSource]);
+    const [alice, bob] = await scenario.addPlayersWithApps([
+      appSource,
+      appSource,
+    ]);
 
     // Shortcut peer discovery through gossip and register all agents in every
     // conductor of the scenario.

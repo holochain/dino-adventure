@@ -1,5 +1,6 @@
 import {
-  ActionHash, type AgentPubKey,
+  ActionHash,
+  type AgentPubKey,
   AppBundleSource,
   fakeActionHash,
   fakeAgentPubKey,
@@ -32,10 +33,13 @@ export async function sampleDino(cell: CallableCell, partialDino = {}) {
   };
 }
 
-export async function createDino(cell: CallableCell, dino = undefined): Promise<AuthoredDino> {
+export async function createDino(
+  cell: CallableCell,
+  dino = undefined,
+): Promise<AuthoredDino> {
   return await cell.callZome({
     zome_name: "dino_adventure",
     fn_name: "create_dino",
-    payload: dino || await sampleDino(cell),
+    payload: dino || (await sampleDino(cell)),
   });
 }

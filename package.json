@@ -15,12 +15,14 @@
     "launch:tauri": "concurrently \"kitsune2-bootstrap-srv --listen $BOOTSTRAP_PORT\" \"echo pass | RUST_LOG=warn hc launch --piped -n $AGENTS workdir/DinoAdventure.happ --ui-port $UI_PORT network --bootstrap http://127.0.0.1:\"$BOOTSTRAP_PORT\" webrtc ws://127.0.0.1:\"$BOOTSTRAP_PORT\"\"",
     "package": "npm run build:happ && npm run package --workspace ui && hc web-app pack workdir --recursive",
     "build:happ": "npm run build:zomes && hc app pack workdir --recursive",
-    "build:zomes": "cargo build --release --target wasm32-unknown-unknown"
+    "build:zomes": "cargo build --release --target wasm32-unknown-unknown",
+    "format": "npm run format --workspace ui && npm run format --workspace tests && cargo fmt"
   },
   "devDependencies": {
     "@holochain/hc-spin": "^0.500.1",
     "concurrently": "^9.1.0",
-    "get-port-cli": "^3.0.0"
+    "get-port-cli": "^3.0.0",
+    "prettier": "^3.5.3"
   },
   "engines": {
     "node": ">=16.0.0"

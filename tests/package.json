@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "test": "vitest run"
+    "test": "vitest run",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "@msgpack/msgpack": "^3.1.1",

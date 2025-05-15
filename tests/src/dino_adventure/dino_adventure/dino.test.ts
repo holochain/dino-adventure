@@ -16,10 +16,10 @@ import {
 import { CallableCell, dhtSync, runScenario } from "@holochain/tryorama";
 import { decode } from "@msgpack/msgpack";
 
-import {AuthoredDino, createDino, sampleDino} from "./common.js";
+import { AuthoredDino, createDino, sampleDino } from "./common.js";
 
 test("create Dino", async () => {
-  await runScenario(async scenario => {
+  await runScenario(async (scenario) => {
     // Construct proper paths for your app.
     // This assumes app bundle created by the `hc app pack` command.
     const testAppPath = process.cwd() + "/../workdir/DinoAdventure.happ";
@@ -29,7 +29,10 @@ test("create Dino", async () => {
 
     // Add 2 players with the test app to the Scenario. The returned players
     // can be destructured.
-    const [alice, bob] = await scenario.addPlayersWithApps([appSource, appSource]);
+    const [alice, bob] = await scenario.addPlayersWithApps([
+      appSource,
+      appSource,
+    ]);
 
     // Shortcut peer discovery through gossip and register all agents in every
     // conductor of the scenario.
@@ -42,7 +45,7 @@ test("create Dino", async () => {
 });
 
 test("create and read Dino", async () => {
-  await runScenario(async scenario => {
+  await runScenario(async (scenario) => {
     // Construct proper paths for your app.
     // This assumes app bundle created by the `hc app pack` command.
     const testAppPath = process.cwd() + "/../workdir/DinoAdventure.happ";
@@ -52,7 +55,10 @@ test("create and read Dino", async () => {
 
     // Add 2 players with the test app to the Scenario. The returned players
     // can be destructured.
-    const [alice, bob] = await scenario.addPlayersWithApps([appSource, appSource]);
+    const [alice, bob] = await scenario.addPlayersWithApps([
+      appSource,
+      appSource,
+    ]);
 
     // Shortcut peer discovery through gossip and register all agents in every
     // conductor of the scenario.
@@ -73,12 +79,15 @@ test("create and read Dino", async () => {
       fn_name: "get_original_dino",
       payload: record.address,
     });
-    assert.deepEqual(sample, decode((createReadOutput.entry as any).Present.entry) as any);
+    assert.deepEqual(
+      sample,
+      decode((createReadOutput.entry as any).Present.entry) as any,
+    );
   });
 });
 
 test("create and update Dino", async () => {
-  await runScenario(async scenario => {
+  await runScenario(async (scenario) => {
     // Construct proper paths for your app.
     // This assumes app bundle created by the `hc app pack` command.
     const testAppPath = process.cwd() + "/../workdir/DinoAdventure.happ";
@@ -88,7 +97,10 @@ test("create and update Dino", async () => {
 
     // Add 2 players with the test app to the Scenario. The returned players
     // can be destructured.We just haven't understood it well enough or not implemented it correctly.
-    const [alice, bob] = await scenario.addPlayersWithApps([appSource, appSource]);
+    const [alice, bob] = await scenario.addPlayersWithApps([
+      appSource,
+      appSource,
+    ]);
 
     // Shortcut peer discovery through gossip and register all agents in every
     // conductor of the scenario.
@@ -124,7 +136,10 @@ test("create and update Dino", async () => {
       fn_name: "get_latest_dino",
       payload: updatedRecord.signed_action.hashed.hash,
     });
-    assert.deepEqual(contentUpdate, decode((readUpdatedOutput0.entry as any).Present.entry) as any);
+    assert.deepEqual(
+      contentUpdate,
+      decode((readUpdatedOutput0.entry as any).Present.entry) as any,
+    );
 
     // Alice updates the Dino again
     contentUpdate = await sampleDino(alice.cells[0]);
@@ -150,7 +165,10 @@ test("create and update Dino", async () => {
       fn_name: "get_latest_dino",
       payload: updatedRecord.signed_action.hashed.hash,
     });
-    assert.deepEqual(contentUpdate, decode((readUpdatedOutput1.entry as any).Present.entry) as any);
+    assert.deepEqual(
+      contentUpdate,
+      decode((readUpdatedOutput1.entry as any).Present.entry) as any,
+    );
 
     // Bob gets all the revisions for Dino
     const revisions: Record[] = await bob.cells[0].callZome({
@@ -159,12 +177,15 @@ test("create and update Dino", async () => {
       payload: originalActionHash,
     });
     assert.equal(revisions.length, 3);
-    assert.deepEqual(contentUpdate, decode((revisions[2].entry as any).Present.entry) as any);
+    assert.deepEqual(
+      contentUpdate,
+      decode((revisions[2].entry as any).Present.entry) as any,
+    );
   });
 });
 
 test("create and delete Dino", async () => {
-  await runScenario(async scenario => {
+  await runScenario(async (scenario) => {
     // Construct proper paths for your app.
     // This assumes app bundle created by the `hc app pack` command.
     const testAppPath = process.cwd() + "/../workdir/DinoAdventure.happ";
@@ -174,7 +195,10 @@ test("create and delete Dino", async () => {
 
     // Add 2 players with the test app to the Scenario. The returned players
     // can be destructured.
-    const [alice, bob] = await scenario.addPlayersWithApps([appSource, appSource]);
+    const [alice, bob] = await scenario.addPlayersWithApps([
+      appSource,
+      appSource,
+    ]);
 
     // Shortcut peer discovery through gossip and register all agents in every
     // conductor of the scenario.
@@ -200,11 +224,13 @@ test("create and delete Dino", async () => {
     await dhtSync([alice, bob], alice.cells[0].cell_id[0]);
 
     // Bob gets the oldest delete for the Dino
-    const oldestDeleteForDino: SignedActionHashed = await bob.cells[0].callZome({
-      zome_name: "dino_adventure",
-      fn_name: "get_oldest_delete_for_dino",
-      payload: authoredDino.address,
-    });
+    const oldestDeleteForDino: SignedActionHashed = await bob.cells[0].callZome(
+      {
+        zome_name: "dino_adventure",
+        fn_name: "get_oldest_delete_for_dino",
+        payload: authoredDino.address,
+      },
+    );
     assert.ok(oldestDeleteForDino);
 
     // Bob gets the deletions for the Dino
