@@ -16,7 +16,7 @@
     {#if peerInfo == null}
         <p>Checking peer connections...</p>
     {:else}
-        <p class="tooltip tooltip-left" data-tip={`Open connections: ${ peerInfo.connected_peers }, direct: ${ peerInfo.direct_connected_peers }`}>{ peerInfo.direct_connected_peers }
+        <p class="tooltip tooltip-left" data-tip={`Direct connections: ${ peerInfo.direct_connected_peers }, all: ${ peerInfo.connected_peers }`}>{ peerInfo.direct_connected_peers }
             / { peerInfo.connected_peers }</p>
     {/if}
 </div>

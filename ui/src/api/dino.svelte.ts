@@ -1,6 +1,6 @@
 import type {AuthoredDino, Dino} from "../dino_adventure/dino_adventure/types";
 import {callZome, signalHandler} from "./common.svelte";
-import type {SignedActionHashed} from "@holochain/client";
+import {encodeHashToBase64, type SignedActionHashed} from "@holochain/client";
 
 let dinoState: AuthoredDino[] = $state([]);
 
@@ -19,7 +19,7 @@ export const createDino = async (dino: Dino): Promise<AuthoredDino> => {
     })
 }
 
-export const getAllDinos = async (): Promise<AuthoredDino[]> => {
+const fetchDinos = async (): Promise<AuthoredDino[]> => {
     const authoredDinos = await callZome<AuthoredDino[]>({
         role_name: "dino_adventure",
         zome_name: "dino_adventure",
@@ -27,24 +27,27 @@ export const getAllDinos = async (): Promise<AuthoredDino[]> => {
         payload: null,
     });
 
-    dinoState = [
-        // Remove any content that is no longer in the authored dino list
-        ...dinoState.filter((authoredDino) => authoredDinos.find((dino) => dino.dino.name == authoredDino.dino.name)),
-        // Then add new content
-        ...authoredDinos
-    ];
-    setTimeout(() => {
-        dinosFirstLoad = true;
-    }, 1000)
+    const newDinos = authoredDinos.filter(newDino => dinoState.find((existingDino) => encodeHashToBase64(existingDino.address) === encodeHashToBase64(newDino.address)) == undefined);
+    if (newDinos.length > 0) {
+        dinoState = [
+            // Keep existing dinos in the state
+            ...dinoState,
+            // Add any new dinos that were missing
+            ...newDinos,
+        ];
+    }
 
+    if (!dinosFirstLoad) {
+        setTimeout(() => {
+            dinosFirstLoad = true;
+        }, 1000)
+    }
 
     return authoredDinos;
 }
 
 (async () => {
     signalHandler.addSignalHandler("dino_adventure:EntryCreated:Dino", (dino: Dino, action: SignedActionHashed) => {
-        dinoState = dinoState.filter((authoredDino) => authoredDino.dino.name != dino.name);
-
         dinoState.push({
             dino: dino,
             address: action.hashed.hash,
@@ -53,5 +56,10 @@ export const getAllDinos = async (): Promise<AuthoredDino[]> => {
     });
 
     // Load all the dinos when the page loads
-    await getAllDinos();
+    await fetchDinos();
+
+    // Poll for new dinos every 5 seconds
+    setInterval(() => {
+        fetchDinos().catch(console.error);
+    }, 5000);
 })();

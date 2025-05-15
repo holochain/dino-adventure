@@ -1,6 +1,6 @@
 <script lang="ts">
     import logo from "./assets/holochainLogo.svg";
-    import {getAgentPubKeyB64, getDinosFirstLoaded, getDinoState, getIsConnected} from "./api";
+    import {getAgentPubKeyB64, getDinosFirstLoaded, getDinoState} from "./api";
     import Connected from "./components/Connected.svelte";
     import CreateDino from "./dino_adventure/dino_adventure/CreateDino.svelte";
     import DinoGathering from "./components/DinoGathering.svelte";
