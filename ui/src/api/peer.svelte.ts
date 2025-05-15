@@ -1,7 +1,7 @@
 import { runOnClient } from "./common.svelte";
 import {
   type DumpNetworkStatsResponse,
-  type DumpNetworkMetricsResponse, type AgentPubKey,
+  type DumpNetworkMetricsResponse,
 } from "@holochain/client";
 
 let networkStatsState = $state<DumpNetworkStatsResponse>({
@@ -19,16 +19,19 @@ export interface PeerConnections {
 
 const peerConnectionsState = $derived<PeerConnections>({
   connectedPeers: networkStatsState.connections.length,
-  directConnectedPeers: networkStatsState.connections.filter(
-      (c) => c.is_webrtc,
-  ).length,
-})
+  directConnectedPeers: networkStatsState.connections.filter((c) => c.is_webrtc)
+    .length,
+});
 
 const fetchQueueCountState = $derived.by(() => {
   return Object.keys(networkMetricsState).reduce((acc, key) => {
-    return acc + Object.keys(networkMetricsState[key].fetch_state_summary.pending_requests).length;
-  }, 0)
-})
+    return (
+      acc +
+      Object.keys(networkMetricsState[key].fetch_state_summary.pending_requests)
+        .length
+    );
+  }, 0);
+});
 
 export const getPeerConnectionsState = () => peerConnectionsState;
 

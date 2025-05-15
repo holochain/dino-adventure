@@ -1,6 +1,10 @@
+use hdi::prelude::*;
+
 pub mod dino;
 pub use dino::*;
-use hdi::prelude::*;
+
+pub mod adventure;
+pub use adventure::*;
 
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "type")]
@@ -8,6 +12,7 @@ use hdi::prelude::*;
 #[unit_enum(UnitEntryTypes)]
 pub enum EntryTypes {
     Dino(Dino),
+    Adventure(Adventure),
 }
 
 #[derive(Serialize, Deserialize)]
@@ -15,6 +20,7 @@ pub enum EntryTypes {
 pub enum LinkTypes {
     DinoUpdates,
     AllDinos,
+    AllAdventures,
 }
 
 // Validation you perform during the genesis process. Nobody else on the network performs it, only you.
@@ -59,12 +65,18 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                 EntryTypes::Dino(dino) => {
                     validate_create_dino(EntryCreationAction::Create(action), dino)
                 }
+                EntryTypes::Adventure(adventure) => {
+                    validate_create_adventure(EntryCreationAction::Create(action), adventure)
+                }
             },
             OpEntry::UpdateEntry {
                 app_entry, action, ..
             } => match app_entry {
                 EntryTypes::Dino(dino) => {
                     validate_create_dino(EntryCreationAction::Update(action), dino)
+                }
+                EntryTypes::Adventure(adventure) => {
+                    validate_create_adventure(EntryCreationAction::Update(action), adventure)
                 }
             },
             _ => Ok(ValidateCallbackResult::Valid),
@@ -95,6 +107,24 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                             }
                         };
                         validate_update_dino(action, dino, original_create_action, original_dino)
+                    }
+                    EntryTypes::Adventure(adventure) => {
+                        let original_app_entry =
+                            must_get_valid_record(action.clone().original_action_address)?;
+                        let original_adventure = match Adventure::try_from(original_app_entry) {
+                            Ok(entry) => entry,
+                            Err(e) => {
+                                return Ok(ValidateCallbackResult::Invalid(format!(
+                                    "Expected to get Adventure from Record: {e:?}"
+                                )));
+                            }
+                        };
+                        validate_update_adventure(
+                            action,
+                            adventure,
+                            original_create_action,
+                            original_adventure,
+                        )
                     }
                 }
             }
@@ -145,6 +175,11 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                     original_action,
                     original_dino,
                 ),
+                EntryTypes::Adventure(original_adventure) => validate_delete_adventure(
+                    delete_entry.clone().action,
+                    original_action,
+                    original_adventure,
+                ),
             }
         }
         FlatOp::RegisterCreateLink {
@@ -159,6 +194,9 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
             }
             LinkTypes::AllDinos => {
                 validate_create_link_all_dinos(action, base_address, target_address, tag)
+            }
+            LinkTypes::AllAdventures => {
+                validate_create_link_all_adventures(action, base_address, target_address, tag)
             }
         },
         FlatOp::RegisterDeleteLink {
@@ -183,6 +221,13 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                 target_address,
                 tag,
             ),
+            LinkTypes::AllAdventures => validate_delete_link_all_adventures(
+                action,
+                original_action,
+                base_address,
+                target_address,
+                tag,
+            ),
         },
         FlatOp::StoreRecord(store_record) => {
             match store_record {
@@ -192,6 +237,9 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                 OpRecord::CreateEntry { app_entry, action } => match app_entry {
                     EntryTypes::Dino(dino) => {
                         validate_create_dino(EntryCreationAction::Create(action), dino)
+                    }
+                    EntryTypes::Adventure(adventure) => {
+                        validate_create_adventure(EntryCreationAction::Create(action), adventure)
                     }
                 },
                 // Complementary validation to the `RegisterUpdate` Op, in which the record itself is validated
@@ -238,6 +286,37 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                                     }
                                 };
                                 validate_update_dino(action, dino, original_action, original_dino)
+                            } else {
+                                Ok(result)
+                            }
+                        }
+                        EntryTypes::Adventure(adventure) => {
+                            let result = validate_create_adventure(
+                                EntryCreationAction::Update(action.clone()),
+                                adventure.clone(),
+                            )?;
+                            if let ValidateCallbackResult::Valid = result {
+                                let original_adventure: Option<Adventure> = original_record
+                                    .entry()
+                                    .to_app_option()
+                                    .map_err(|e| wasm_error!(e))?;
+                                let original_adventure = match original_adventure {
+                                    Some(adventure) => adventure,
+                                    None => {
+                                        return Ok(
+                                            ValidateCallbackResult::Invalid(
+                                                "The updated entry type must be the same as the original entry type"
+                                                    .to_string(),
+                                            ),
+                                        );
+                                    }
+                                };
+                                validate_update_adventure(
+                                    action,
+                                    adventure,
+                                    original_action,
+                                    original_adventure,
+                                )
                             } else {
                                 Ok(result)
                             }
@@ -297,6 +376,9 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                         EntryTypes::Dino(original_dino) => {
                             validate_delete_dino(action, original_action, original_dino)
                         }
+                        EntryTypes::Adventure(original_adventure) => {
+                            validate_delete_adventure(action, original_action, original_adventure)
+                        }
                     }
                 }
                 // Complementary validation to the `RegisterCreateLink` Op, in which the record itself is validated
@@ -315,6 +397,12 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                     LinkTypes::AllDinos => {
                         validate_create_link_all_dinos(action, base_address, target_address, tag)
                     }
+                    LinkTypes::AllAdventures => validate_create_link_all_adventures(
+                        action,
+                        base_address,
+                        target_address,
+                        tag,
+                    ),
                 },
                 // Complementary validation to the `RegisterDeleteLink` Op, in which the record itself is validated
                 // If you want to optimize performance, you can remove the validation for an entry type here and keep it in `RegisterDeleteLink`
@@ -352,6 +440,13 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                             create_link.tag,
                         ),
                         LinkTypes::AllDinos => validate_delete_link_all_dinos(
+                            action,
+                            create_link.clone(),
+                            base_address,
+                            create_link.target_address,
+                            create_link.tag,
+                        ),
+                        LinkTypes::AllAdventures => validate_delete_link_all_adventures(
                             action,
                             create_link.clone(),
                             base_address,

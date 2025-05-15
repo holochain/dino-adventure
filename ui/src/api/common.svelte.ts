@@ -1,11 +1,12 @@
 import {
   AppWebsocket,
-  HolochainError,
   type CallZomeRequest,
+  encodeHashToBase64,
+  HolochainError,
   type RoleNameCallZomeRequest,
   type Signal,
+  SignalType,
   type SignedActionHashed,
-  encodeHashToBase64,
 } from "@holochain/client";
 import type { DinoAdventureSignal } from "../dino_adventure/dino_adventure/types";
 
@@ -24,7 +25,7 @@ export const runOnClient = async <T>(
 ): Promise<T> => {
   if (!client) {
     client = await AppWebsocket.connect();
-    client.on("signal", signalHandler.handleSignal);
+    client.on("signal", (signal) => signalHandler.handleSignal(signal));
   }
 
   isConnected = true;
@@ -53,7 +54,10 @@ export const callZome = async <T>(
   });
 };
 
-export type SignalHandlerCb<T> = (value: T, action: SignedActionHashed) => void;
+export type SignalHandlerCb<T> = (
+  value: T,
+  action: SignedActionHashed | null,
+) => void;
 
 export class SignalHandler {
   private store: { [key: string]: SignalHandlerCb<unknown> } = {};
@@ -63,16 +67,17 @@ export class SignalHandler {
   }
 
   handleSignal(signal: Signal) {
-    if (signal.type == "app") {
+    if (signal.type == SignalType.App) {
       const appSignal = signal.value;
 
       const payload = appSignal.payload as DinoAdventureSignal;
 
+      let handler;
       switch (appSignal.zome_name) {
         case "dino_adventure":
           switch (payload.type) {
             case "EntryCreated":
-              const handler =
+              handler =
                 this.store[
                   `${appSignal.zome_name}:${payload.type}:${payload.app_entry.type}`
                 ];
@@ -80,6 +85,30 @@ export class SignalHandler {
                 handler(payload.app_entry, payload.action);
               }
 
+              break;
+            case "AdventureInvite":
+              handler = this.store[`${appSignal.zome_name}:${payload.type}`];
+
+              if (handler) {
+                handler(
+                  {
+                    sender: payload.sender,
+                  },
+                  null,
+                );
+              }
+              break;
+            case "InviteAcceptance":
+              handler = this.store[`${appSignal.zome_name}:${payload.type}`];
+
+              if (handler) {
+                handler(
+                  {
+                    accepted_by: payload.accepted_by,
+                  },
+                  null,
+                );
+              }
               break;
           }
 

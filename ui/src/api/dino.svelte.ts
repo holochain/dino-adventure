@@ -22,7 +22,7 @@ export const createDino = async (dino: Dino): Promise<AuthoredDino> => {
   });
 };
 
-const fetchDinos = async (): Promise<AuthoredDino[]> => {
+const fetchDinos = async (): Promise<void> => {
   const authoredDinos = await callZome<AuthoredDino[]>({
     role_name: "dino_adventure",
     zome_name: "dino_adventure",
@@ -52,24 +52,22 @@ const fetchDinos = async (): Promise<AuthoredDino[]> => {
       dinosFirstLoad = true;
     }, 1000);
   }
-
-  return authoredDinos;
 };
 
-(async () => {
+(() => {
   signalHandler.addSignalHandler(
     "dino_adventure:EntryCreated:Dino",
-    (dino: Dino, action: SignedActionHashed) => {
+    (dino: Dino, action: SignedActionHashed | null) => {
       dinoState.push({
         dino: dino,
-        address: action.hashed.hash,
-        author: action.hashed.content.author,
+        address: action!.hashed.hash,
+        author: action!.hashed.content.author,
       });
     },
   );
 
   // Load all the dinos when the page loads
-  await fetchDinos();
+  fetchDinos().catch(console.error);
 
   // Poll for new dinos every 5 seconds
   setInterval(() => {

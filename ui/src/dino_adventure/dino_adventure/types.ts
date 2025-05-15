@@ -5,10 +5,6 @@ import type {
   CreateLink,
   Delete,
   DeleteLink,
-  DnaHash,
-  EntryHash,
-  ExternalHash,
-  Record,
   SignedActionHashed,
   Update,
 } from "@holochain/client";
@@ -39,11 +35,17 @@ export type DinoAdventureSignal =
       type: "LinkDeleted";
       action: SignedActionHashed<DeleteLink>;
       link_type: string;
+    }
+  | {
+      type: "AdventureInvite";
+      sender: AgentPubKey;
+    }
+  | {
+      type: "InviteAcceptance";
+      accepted_by: AgentPubKey;
     };
 
-/* dprint-ignore-start */
 export type EntryTypes = { type: "Dino" } & Dino;
-/* dprint-ignore-end */
 
 export const DinoKinds = [
   "Allosaurus",
@@ -72,6 +74,24 @@ export interface Dino {
 
 export interface AuthoredDino {
   dino: Dino;
+  author: AgentPubKey;
+  address: ActionHash;
+}
+
+export interface AdventureInvite {
+  to: AgentPubKey;
+}
+
+export interface AdventureInviteAcceptance {
+  to: AgentPubKey;
+}
+
+export interface Adventure {
+  participants: AgentPubKey[];
+}
+
+export interface AuthoredAdventure {
+  adventure: Adventure;
   author: AgentPubKey;
   address: ActionHash;
 }

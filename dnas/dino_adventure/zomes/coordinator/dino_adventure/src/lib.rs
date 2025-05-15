@@ -1,13 +1,24 @@
 use dino_adventure_integrity::*;
 use hdk::prelude::*;
 
+mod adventure;
+mod all_adventures;
 mod all_dinos;
 mod dino;
+mod invite;
 mod types;
 
 // Called the first time a zome call is made to the cell containing this zome
 #[hdk_extern]
 pub fn init() -> ExternResult<InitCallbackResult> {
+    let mut listed = BTreeSet::new();
+    listed.insert((zome_info()?.name, "recv_remote_signal".into()));
+    create_cap_grant(CapGrantEntry {
+        tag: "".to_string(),
+        access: CapAccess::Unrestricted,
+        functions: GrantedFunctions::Listed(listed),
+    })?;
+
     Ok(InitCallbackResult::Pass)
 }
 
@@ -37,6 +48,34 @@ pub enum Signal {
         action: SignedActionHashed,
         original_app_entry: EntryTypes,
     },
+    AdventureInvite {
+        sender: AgentPubKey,
+    },
+    InviteAcceptance {
+        accepted_by: AgentPubKey,
+    },
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(tag = "type")]
+pub enum AppRemoteSignal {
+    AdventureInvite,
+    AdventureInviteAcceptance,
+}
+
+#[hdk_extern]
+pub fn recv_remote_signal(signal: AppRemoteSignal) -> ExternResult<()> {
+    if AppRemoteSignal::AdventureInvite == signal {
+        let caller = call_info()?.provenance;
+        emit_signal(Signal::AdventureInvite { sender: caller })?;
+    } else if AppRemoteSignal::AdventureInviteAcceptance == signal {
+        let caller = call_info()?.provenance;
+        emit_signal(Signal::InviteAcceptance {
+            accepted_by: caller,
+        })?;
+    }
+
+    Ok(())
 }
 
 // Whenever an action is committed, we emit a signal to the UI elements to reactively update them

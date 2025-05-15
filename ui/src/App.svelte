@@ -1,14 +1,20 @@
 <script lang="ts">
   import logo from "./assets/holochainLogo.svg";
-  import { getAgentPubKeyB64, getDinosFirstLoaded, getDinoState } from "./api";
+  import {
+    getAdventureState,
+    getAgentPubKeyB64,
+    getDinosFirstLoaded,
+    getDinoState,
+  } from "./api";
   import Connected from "./components/Connected.svelte";
   import CreateDino from "./dino_adventure/dino_adventure/CreateDino.svelte";
   import DinoGathering from "./components/DinoGathering.svelte";
   import { encodeHashToBase64 } from "@holochain/client";
   import ConnectionsState from "./components/ConnectionsState.svelte";
   import FetchCount from "./components/FetchCount.svelte";
+  import AdventureAssembly from "./components/AdventureAssembly.svelte";
 
-  let hasNoDinos = $derived(
+  let thisAgentHasNoDinos = $derived(
     getDinoState().find(
       (d) => encodeHashToBase64(d.author) === getAgentPubKeyB64(),
     ) === undefined,
@@ -22,7 +28,7 @@
     <div class="flex flex-row w-full justify-center items-center h-dvh">
       <p class="text-2xl">Preparing your adventure!</p>
     </div>
-  {:else if hasNoDinos}
+  {:else if thisAgentHasNoDinos}
     <CreateDino />
   {:else}
     <DinoGathering />
@@ -31,12 +37,15 @@
         <p>Waiting for more Dinos to gather</p>
       </div>
     {:else if getDinoState().length > 1}
-      <div class="w-full flex flex-col items-center">
-        <p>Some Dinos are here!</p>
-        <p>Click on other Dinos to invite them on an adventure.</p>
-      </div>
+      <AdventureAssembly />
     {/if}
   {/if}
+
+  {#each getAdventureState() as adv}
+    <p>
+      {adv.adventure.participants.map((p) => encodeHashToBase64(p)).join(", ")}
+    </p>
+  {/each}
 
   <a
     class="absolute bottom-2 left-2"

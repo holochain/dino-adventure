@@ -41,8 +41,9 @@ pub fn validate_update_dino(
     _original_action: EntryCreationAction,
     _original_dino: Dino,
 ) -> ExternResult<ValidateCallbackResult> {
-    // TODO: add the appropriate validation rules
-    Ok(ValidateCallbackResult::Valid)
+    Ok(ValidateCallbackResult::Invalid(
+        "Dino cannot be updated".to_string(),
+    ))
 }
 
 pub fn validate_delete_dino(
@@ -66,7 +67,7 @@ pub fn validate_create_link_dino_updates(
             "No action hash associated with link".to_string()
         )))?;
     let record = must_get_valid_record(action_hash)?;
-    let _dino: crate::Dino = record
+    let _dino: Dino = record
         .entry()
         .to_app_option()
         .map_err(|e| wasm_error!(e))?
@@ -80,7 +81,7 @@ pub fn validate_create_link_dino_updates(
                 "No action hash associated with link".to_string()
             )))?;
     let record = must_get_valid_record(action_hash)?;
-    let _dino: crate::Dino = record
+    let _dino: Dino = record
         .entry()
         .to_app_option()
         .map_err(|e| wasm_error!(e))?
@@ -116,7 +117,7 @@ pub fn validate_create_link_all_dinos(
                 "No action hash associated with link".to_string()
             )))?;
     let record = must_get_valid_record(action_hash)?;
-    let _dino: crate::Dino = record
+    let _dino: Dino = record
         .entry()
         .to_app_option()
         .map_err(|e| wasm_error!(e))?
