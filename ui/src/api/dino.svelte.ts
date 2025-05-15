@@ -26,7 +26,7 @@ const fetchDinos = async (): Promise<AuthoredDino[]> => {
   const authoredDinos = await callZome<AuthoredDino[]>({
     role_name: "dino_adventure",
     zome_name: "dino_adventure",
-    fn_name: "get_all_dinos",
+    fn_name: "get_all_dinos_local",
     payload: null,
   });
 

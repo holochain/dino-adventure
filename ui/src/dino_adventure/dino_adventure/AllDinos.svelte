@@ -38,7 +38,7 @@
       const links: Array<Link> = await client.callZome({
         role_name: "dino_adventure",
         zome_name: "dino_adventure",
-        fn_name: "get_all_dinos",
+        fn_name: "get_all_dinos_local",
         payload: null,
       });
       if (links.length) {

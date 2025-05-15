@@ -53,7 +53,7 @@
         class={["relative", "p-2", ""]}
         style={`top: ${calculateHeight(index, size - 1)}%`}
       >
-        <div class="flex flex-col items-center">
+        <div>
           {#if v}
             <Dino authoredDino={v} />
           {:else}

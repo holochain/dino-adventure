@@ -38,7 +38,7 @@ test("create a Dino and get all dinos", async () => {
     // Bob gets all dinos
     let collectionOutput = await bob.cells[0].callZome<AuthoredDino[]>({
       zome_name: "dino_adventure",
-      fn_name: "get_all_dinos",
+      fn_name: "get_all_dinos_local",
       payload: null,
     });
     assert.equal(collectionOutput.length, 0);
@@ -52,7 +52,7 @@ test("create a Dino and get all dinos", async () => {
     // Bob gets all dinos again
     collectionOutput = await bob.cells[0].callZome<AuthoredDino[]>({
       zome_name: "dino_adventure",
-      fn_name: "get_all_dinos",
+      fn_name: "get_all_dinos_local",
       payload: null,
     });
     assert.equal(collectionOutput.length, 1);
@@ -70,7 +70,7 @@ test("create a Dino and get all dinos", async () => {
     // Bob gets all dinos again
     collectionOutput = await bob.cells[0].callZome<AuthoredDino[]>({
       zome_name: "dino_adventure",
-      fn_name: "get_all_dinos",
+      fn_name: "get_all_dinos_local",
       payload: null,
     });
     assert.equal(collectionOutput.length, 0);

@@ -5,7 +5,8 @@
   import CreateDino from "./dino_adventure/dino_adventure/CreateDino.svelte";
   import DinoGathering from "./components/DinoGathering.svelte";
   import { encodeHashToBase64 } from "@holochain/client";
-  import PeerInfo from "./components/PeerInfo.svelte";
+  import ConnectionsState from "./components/ConnectionsState.svelte";
+  import FetchCount from "./components/FetchCount.svelte";
 
   let hasNoDinos = $derived(
     getDinoState().find(
@@ -29,6 +30,11 @@
       <div class="w-full flex flex-row justify-center">
         <p>Waiting for more Dinos to gather</p>
       </div>
+    {:else if getDinoState().length > 1}
+      <div class="w-full flex flex-col items-center">
+        <p>Some Dinos are here!</p>
+        <p>Click on other Dinos to invite them on an adventure.</p>
+      </div>
     {/if}
   {/if}
 
@@ -39,7 +45,8 @@
   >
 
   <div class="flex flex-row gap-3 status-position">
-    <PeerInfo />
+    <FetchCount />
+    <ConnectionsState />
     <Connected />
   </div>
 </main>
