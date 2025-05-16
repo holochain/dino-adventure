@@ -36,6 +36,7 @@ impl TryFrom<Record> for AuthoredDino {
 pub struct AuthoredAdventure {
     pub adventure: Adventure,
     pub author: AgentPubKey,
+    pub created_at: Timestamp,
     pub address: ActionHash,
 }
 
@@ -54,6 +55,7 @@ impl TryFrom<Record> for AuthoredAdventure {
             Some(adventure) => Ok(AuthoredAdventure {
                 adventure,
                 author: value.action().author().clone(),
+                created_at: value.action().timestamp().clone(),
                 address: value.action_address().clone(),
             }),
             None => Err(wasm_error!(WasmErrorInner::Guest(

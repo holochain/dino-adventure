@@ -6,6 +6,7 @@ import type {
   Delete,
   DeleteLink,
   SignedActionHashed,
+  Timestamp,
   Update,
 } from "@holochain/client";
 
@@ -93,5 +94,6 @@ export interface Adventure {
 export interface AuthoredAdventure {
   adventure: Adventure;
   author: AgentPubKey;
+  created_at: Timestamp;
   address: ActionHash;
 }

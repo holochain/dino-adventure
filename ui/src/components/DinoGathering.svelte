@@ -17,7 +17,7 @@
   let scroll = $state(0);
 
   const dinos = $derived.by(() => {
-    let dinoState = getDinoState();
+    let dinoState = Object.values(getDinoState());
 
     let useSize = Math.min(dinoState.length, size);
 
@@ -47,12 +47,9 @@
   <div class="flex flex-col justify-center">
     <button class="btn" onclick={() => (scroll -= 1)}>&lt;</button>
   </div>
-  <div class="w-full h-64 px-5 flex flex-row justify-between">
+  <div class="w-full h-48 px-5 flex flex-row justify-between">
     {#each dinos as v, index}
-      <div
-        class={["relative", "p-2", ""]}
-        style={`top: ${calculateHeight(index, size - 1)}%`}
-      >
+      <div style={`margin-top: ${calculateHeight(index, size - 1)}px`}>
         <div>
           {#if v}
             <Dino authoredDino={v} />

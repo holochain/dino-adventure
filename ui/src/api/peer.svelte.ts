@@ -1,7 +1,8 @@
-import { runOnClient } from "./common.svelte";
+import { getAgentPubKeyB64, runOnClient } from "./common.svelte";
 import {
   type DumpNetworkStatsResponse,
   type DumpNetworkMetricsResponse,
+  encodeHashToBase64,
 } from "@holochain/client";
 
 let networkStatsState = $state<DumpNetworkStatsResponse>({
@@ -11,6 +12,20 @@ let networkStatsState = $state<DumpNetworkStatsResponse>({
 });
 
 let networkMetricsState = $state<DumpNetworkMetricsResponse>({});
+
+const myLocalAgent = $derived.by(() => {
+  const metrics = Object.values(networkMetricsState);
+  if (metrics.length === 0) {
+    return;
+  }
+  const myAgentKey = getAgentPubKeyB64();
+
+  return metrics[0].local_agents.find(
+    (a) => encodeHashToBase64(a.agent) === myAgentKey,
+  );
+});
+
+export const getMyLocalAgent = () => myLocalAgent;
 
 export interface PeerConnections {
   connectedPeers: number;
@@ -39,7 +54,7 @@ export const getFetchQueueCount = () => fetchQueueCountState;
 
 const updateNetworkStats = () => {
   runOnClient(async (client): Promise<DumpNetworkStatsResponse> => {
-    return await client.dumpNetworkStats();
+    return await client.dumpNetworkStats(1000);
   })
     .then((stats) => {
       networkStatsState = stats;
@@ -49,9 +64,12 @@ const updateNetworkStats = () => {
 
 const updateNetworkMetrics = () => {
   runOnClient(async (client): Promise<DumpNetworkMetricsResponse> => {
-    return await client.dumpNetworkMetrics({
-      include_dht_summary: false,
-    });
+    return await client.dumpNetworkMetrics(
+      {
+        include_dht_summary: false,
+      },
+      1000,
+    );
   })
     .then((metrics) => {
       networkMetricsState = metrics;

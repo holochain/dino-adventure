@@ -1,10 +1,11 @@
 <script lang="ts">
   import logo from "./assets/holochainLogo.svg";
   import {
-    getAdventureState,
+    getMyAdventuresState,
     getAgentPubKeyB64,
     getDinosFirstLoaded,
     getDinoState,
+    getMyLatestAdventuresState,
   } from "./api";
   import Connected from "./components/Connected.svelte";
   import CreateDino from "./dino_adventure/dino_adventure/CreateDino.svelte";
@@ -13,9 +14,10 @@
   import ConnectionsState from "./components/ConnectionsState.svelte";
   import FetchCount from "./components/FetchCount.svelte";
   import AdventureAssembly from "./components/AdventureAssembly.svelte";
+  import MyArc from "./components/MyArc.svelte";
 
   let thisAgentHasNoDinos = $derived(
-    getDinoState().find(
+    Object.values(getDinoState()).find(
       (d) => encodeHashToBase64(d.author) === getAgentPubKeyB64(),
     ) === undefined,
   );
@@ -30,20 +32,24 @@
     </div>
   {:else if thisAgentHasNoDinos}
     <CreateDino />
+  {:else if !!getMyLatestAdventuresState()}
+    <p>Live adventure!</p>
+    <button class="btn btn-ghost">End adventure</button>
   {:else}
     <DinoGathering />
-    {#if getDinoState().length === 1}
+    {#if Object.values(getDinoState()).length === 1}
       <div class="w-full flex flex-row justify-center">
         <p>Waiting for more Dinos to gather</p>
       </div>
-    {:else if getDinoState().length > 1}
+    {:else if Object.values(getDinoState()).length > 1}
       <AdventureAssembly />
     {/if}
   {/if}
 
-  {#each getAdventureState() as adv}
+  {#each Object.values(getMyAdventuresState()) as adv}
     <p>
       {adv.adventure.participants.map((p) => encodeHashToBase64(p)).join(", ")}
+      {adv.address}
     </p>
   {/each}
 
@@ -54,6 +60,7 @@
   >
 
   <div class="flex flex-row gap-3 status-position">
+    <MyArc />
     <FetchCount />
     <ConnectionsState />
     <Connected />

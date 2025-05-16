@@ -59,7 +59,7 @@
   const openInvites = $derived.by<{ name: string; sender: AgentPubKey }[]>(
     () => {
       let openInvites = getOpenInvites();
-      let dinos = getDinoState();
+      let dinos = Object.values(getDinoState());
 
       return openInvites.reduce(
         (acc: { name: string; sender: AgentPubKey }[], invite) => {
@@ -86,8 +86,7 @@
 
   const assembledDinos = $derived.by<AuthoredDino[]>(() => {
     let acceptedInvites = getAcceptedInvites();
-
-    let assembledDinos = getDinoState();
+    let assembledDinos = Object.values(getDinoState());
 
     return acceptedInvites.reduce((acc: AuthoredDino[], accepted) => {
       let dino = assembledDinos.find((dino) => {
@@ -146,6 +145,7 @@
       ]}
       ondrop={handleDinoDrop}
       ondragover={handleDragover}
+      ondragenter={() => (dragHighlight = true)}
       ondragleave={() => (dragHighlight = false)}
       role="form"
     >
