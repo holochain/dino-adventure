@@ -13,6 +13,7 @@ import type { DinoAdventureSignal } from "../dino_adventure/dino_adventure/types
 let client: AppWebsocket | null = null;
 
 let isConnected = $state(false);
+let isConnecting = $state(false);
 
 let myPubKeyB64 = $state("");
 
@@ -20,12 +21,26 @@ export const getIsConnected = () => isConnected;
 
 export const getAgentPubKeyB64 = () => myPubKeyB64;
 
+export const getAppInfo = () => client?.cachedAppInfo;
+
 export const runOnClient = async <T>(
   cb: (client: AppWebsocket) => Promise<T>,
 ): Promise<T> => {
   if (!client) {
-    client = await AppWebsocket.connect();
-    client.on("signal", (signal) => signalHandler.handleSignal(signal));
+    if (isConnecting) {
+      // Try again later
+      return new Promise((resolve) => {
+        setTimeout(resolve, 100);
+      }).then(() => runOnClient(cb));
+    }
+    isConnecting = true;
+
+    try {
+      client = await AppWebsocket.connect();
+      client.on("signal", (signal) => signalHandler.handleSignal(signal));
+    } finally {
+      isConnecting = false;
+    }
   }
 
   isConnected = true;
@@ -105,6 +120,32 @@ export class SignalHandler {
                 handler(
                   {
                     accepted_by: payload.accepted_by,
+                  },
+                  null,
+                );
+              }
+              break;
+            case "IncomingPing":
+              handler = this.store[`${appSignal.zome_name}:${payload.type}`];
+
+              if (handler) {
+                handler(
+                  {
+                    sender: payload.sender,
+                    sent_at: payload.sent_at,
+                  },
+                  null,
+                );
+              }
+              break;
+            case "IncomingPong":
+              handler = this.store[`${appSignal.zome_name}:${payload.type}`];
+
+              if (handler) {
+                handler(
+                  {
+                    sender: payload.sender,
+                    round_trip_ms: payload.round_trip_ms,
                   },
                   null,
                 );

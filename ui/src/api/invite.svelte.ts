@@ -145,6 +145,12 @@ export const injectOurAcceptedInvite = (ourKey: string) => {
   }
 };
 
+export const clearInviteState = () => {
+  openInvites = [];
+  sentInvites = [];
+  acceptedInvites = [];
+};
+
 (() => {
   signalHandler.addSignalHandler(
     "dino_adventure:AdventureInvite",

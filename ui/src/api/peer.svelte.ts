@@ -11,7 +11,11 @@ let networkStatsState = $state<DumpNetworkStatsResponse>({
   peer_urls: [],
 });
 
+export const getNetworkStats = () => networkStatsState;
+
 let networkMetricsState = $state<DumpNetworkMetricsResponse>({});
+
+export const getNetworkMetrics = () => networkMetricsState;
 
 const myLocalAgent = $derived.by(() => {
   const metrics = Object.values(networkMetricsState);

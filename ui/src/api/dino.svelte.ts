@@ -26,16 +26,29 @@ export const createDino = async (dino: Dino): Promise<AuthoredDino> => {
   });
 };
 
+let networkRefreshCounter = 0;
 const fetchDinos = async (): Promise<void> => {
-  const authoredDinos = await callZome<AuthoredDino[]>({
-    role_name: "dino_adventure",
-    zome_name: "dino_adventure",
-    fn_name: "get_all_dinos_local",
-    payload: null,
-  });
+  let authoredDinos: AuthoredDino[];
+
+  if (networkRefreshCounter % 5 === 0) {
+    authoredDinos = await callZome<AuthoredDino[]>({
+      role_name: "dino_adventure",
+      zome_name: "dino_adventure",
+      fn_name: "get_all_dinos",
+      payload: null,
+    });
+  } else {
+    authoredDinos = await callZome<AuthoredDino[]>({
+      role_name: "dino_adventure",
+      zome_name: "dino_adventure",
+      fn_name: "get_all_dinos_local",
+      payload: null,
+    });
+  }
+  networkRefreshCounter++;
 
   const newDinos = authoredDinos.filter(
-    (newDino) => !(encodeHashToBase64(newDino.address) in dinoState),
+    (newDino) => !(encodeHashToBase64(newDino.author) in dinoState),
   );
   if (newDinos.length > 0) {
     dinoState = {
@@ -44,7 +57,7 @@ const fetchDinos = async (): Promise<void> => {
       // Add any new dinos that were missing
       ...newDinos.reduce(
         (acc, dino) => {
-          acc[encodeHashToBase64(dino.address)] = dino;
+          acc[encodeHashToBase64(dino.author)] = dino;
           return acc;
         },
         {} as Record<AgentPubKeyB64, AuthoredDino>,
@@ -63,7 +76,7 @@ const fetchDinos = async (): Promise<void> => {
   signalHandler.addSignalHandler(
     "dino_adventure:EntryCreated:Dino",
     (dino: Dino, action: SignedActionHashed | null) => {
-      dinoState[encodeHashToBase64(action!.hashed.hash)] = {
+      dinoState[encodeHashToBase64(action!.hashed.content.author)] = {
         dino: dino,
         address: action!.hashed.hash,
         author: action!.hashed.content.author,

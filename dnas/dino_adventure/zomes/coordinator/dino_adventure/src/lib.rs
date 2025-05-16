@@ -6,6 +6,7 @@ mod all_adventures;
 mod all_dinos;
 mod dino;
 mod invite;
+mod test;
 mod types;
 
 // Called the first time a zome call is made to the cell containing this zome
@@ -54,6 +55,14 @@ pub enum Signal {
     InviteAcceptance {
         accepted_by: AgentPubKey,
     },
+    IncomingPing {
+        sent_at: Timestamp,
+        sender: AgentPubKey,
+    },
+    IncomingPong {
+        sender: AgentPubKey,
+        round_trip_ms: i64,
+    },
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -61,6 +70,8 @@ pub enum Signal {
 pub enum AppRemoteSignal {
     AdventureInvite,
     AdventureInviteAcceptance,
+    TestPing { sent_at: Timestamp },
+    TestPong { ping_sent_at: Timestamp },
 }
 
 #[hdk_extern]
@@ -72,6 +83,31 @@ pub fn recv_remote_signal(signal: AppRemoteSignal) -> ExternResult<()> {
         let caller = call_info()?.provenance;
         emit_signal(Signal::InviteAcceptance {
             accepted_by: caller,
+        })?;
+    } else if let AppRemoteSignal::TestPing { sent_at } = signal {
+        let caller = call_info()?.provenance;
+
+        // Tell the UI that we received a ping
+        emit_signal(Signal::IncomingPing {
+            sent_at: sent_at.clone(),
+            sender: caller.clone(),
+        })?;
+
+        // Send a pong back to the caller
+        send_remote_signal(
+            AppRemoteSignal::TestPong {
+                ping_sent_at: sent_at,
+            },
+            vec![caller],
+        )?;
+    } else if let AppRemoteSignal::TestPong { ping_sent_at } = signal {
+        let caller = call_info()?.provenance;
+        let round_trip_ms = sys_time()?.as_millis() - ping_sent_at.as_millis();
+
+        // Tell the UI that we received a pong
+        emit_signal(Signal::IncomingPong {
+            sender: caller.clone(),
+            round_trip_ms,
         })?;
     }
 

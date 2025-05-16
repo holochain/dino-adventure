@@ -60,14 +60,14 @@
   <p>Loading...</p>
 {:else if !arcEqual(myLocalAgent.target_arc, myLocalAgent.storage_arc)}
   <p
-    class="tooltip tooltip-left"
+    class="tooltip tooltip-left cursor-progress"
     data-tip={`Targeting arc: ${renderArc(myLocalAgent.target_arc)}, currently at: ${renderArc(myLocalAgent.storage_arc)}`}
   >
     Initial sync...
   </p>
 {:else}
   <p
-    class="tooltip tooltip-left"
+    class="tooltip tooltip-left cursor-pointer"
     data-tip={renderArcInfo(myLocalAgent.storage_arc)}
   >
     {renderArc(myLocalAgent.storage_arc)}

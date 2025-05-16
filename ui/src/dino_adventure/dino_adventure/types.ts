@@ -44,6 +44,16 @@ export type DinoAdventureSignal =
   | {
       type: "InviteAcceptance";
       accepted_by: AgentPubKey;
+    }
+  | {
+      type: "IncomingPing";
+      sent_at: number;
+      sender: AgentPubKey;
+    }
+  | {
+      type: "IncomingPong";
+      sender: AgentPubKey;
+      round_trip_ms: number;
     };
 
 export type EntryTypes = { type: "Dino" } & Dino;

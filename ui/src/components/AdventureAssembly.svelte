@@ -1,6 +1,7 @@
 <script lang="ts">
   import {
     acceptInvite,
+    clearInviteState,
     createAdventure,
     getAcceptedInvites,
     getAgentPubKeyB64,
@@ -119,6 +120,7 @@
       await createAdventure({
         participants,
       });
+      clearInviteState();
     } catch (err) {
       console.error("Failed to create adventure", err);
     }

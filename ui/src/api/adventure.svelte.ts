@@ -18,9 +18,9 @@ const myLatestAdventuresState = $derived.by(() => {
   return all.length > 0 ? all[0] : null;
 });
 
-export const getMyAdventuresState = () => myAdventuresState;
+export const getMyAdventures = () => myAdventuresState;
 
-export const getMyLatestAdventuresState = () => myLatestAdventuresState;
+export const getMyLatestAdventures = () => myLatestAdventuresState;
 
 export const createAdventure = async (
   adventure: Adventure,
@@ -46,12 +46,14 @@ export const endAdventure = async () => {
   }
 
   try {
-    return await callZome({
+    await callZome({
       role_name: "dino_adventure",
       zome_name: "dino_adventure",
       fn_name: "unlink_my_adventure",
       payload: latestAdventureState.address,
     });
+
+    delete myAdventuresState[encodeHashToBase64(latestAdventureState.address)];
   } catch (error) {
     console.error("Error ending adventure:", error);
     throw error;

@@ -1,11 +1,12 @@
 <script lang="ts">
   import logo from "./assets/holochainLogo.svg";
   import {
-    getMyAdventuresState,
+    getMyAdventures,
     getAgentPubKeyB64,
     getDinosFirstLoaded,
     getDinoState,
-    getMyLatestAdventuresState,
+    getMyLatestAdventures,
+    endAdventure,
   } from "./api";
   import Connected from "./components/Connected.svelte";
   import CreateDino from "./dino_adventure/dino_adventure/CreateDino.svelte";
@@ -15,26 +16,45 @@
   import FetchCount from "./components/FetchCount.svelte";
   import AdventureAssembly from "./components/AdventureAssembly.svelte";
   import MyArc from "./components/MyArc.svelte";
+  import RawInfo from "./components/RawInfo.svelte";
+  import Adventure from "./components/Adventure.svelte";
+  import { clearAdventureState } from "./api/test.svelte";
 
   let thisAgentHasNoDinos = $derived(
     Object.values(getDinoState()).find(
       (d) => encodeHashToBase64(d.author) === getAgentPubKeyB64(),
     ) === undefined,
   );
+
+  const handleEndAdventure = () => {
+    endAdventure();
+    clearAdventureState();
+  };
 </script>
 
 <main>
   <img class="w-dvw fixed h-dvh -z-10 opacity-10" alt="" src={logo} />
 
+  <div class=" p-2 flex flex-row gap-2 justify-end">
+    {#if !!getMyLatestAdventures()}
+      <button class="btn btn-ghost" onclick={handleEndAdventure}
+        >End adventure</button
+      >
+    {/if}
+
+    <RawInfo />
+  </div>
+
   {#if !getDinosFirstLoaded()}
-    <div class="flex flex-row w-full justify-center items-center h-dvh">
+    <div
+      class="flex flex-row w-full h-dvh justify-center items-center fixed top-0 left-0 right-0 bottom-0"
+    >
       <p class="text-2xl">Preparing your adventure!</p>
     </div>
   {:else if thisAgentHasNoDinos}
     <CreateDino />
-  {:else if !!getMyLatestAdventuresState()}
-    <p>Live adventure!</p>
-    <button class="btn btn-ghost">End adventure</button>
+  {:else if !!getMyLatestAdventures()}
+    <Adventure />
   {:else}
     <DinoGathering />
     {#if Object.values(getDinoState()).length === 1}
@@ -45,13 +65,6 @@
       <AdventureAssembly />
     {/if}
   {/if}
-
-  {#each Object.values(getMyAdventuresState()) as adv}
-    <p>
-      {adv.adventure.participants.map((p) => encodeHashToBase64(p)).join(", ")}
-      {adv.address}
-    </p>
-  {/each}
 
   <a
     class="absolute bottom-2 left-2"
