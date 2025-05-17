@@ -1,20 +1,13 @@
-import {
-  ActionHash,
-  type AgentPubKey,
-  AppBundleSource,
-  fakeActionHash,
-  fakeAgentPubKey,
-  fakeDnaHash,
-  fakeEntryHash,
-  hashFrom32AndType,
-  NewEntryAction,
-  Record,
-} from "@holochain/client";
+import { ActionHash, type AgentPubKey } from "@holochain/client";
 import { CallableCell } from "@holochain/tryorama";
+import {
+  Adventure,
+  AuthoredAdventure,
+} from "ui/src/dino_adventure/dino_adventure/types";
 
 export interface Dino {
   name: string;
-  dino_kind: string;
+  dino_kind: { type: string };
 }
 
 export interface AuthoredDino {
@@ -23,7 +16,7 @@ export interface AuthoredDino {
   address: ActionHash;
 }
 
-export async function sampleDino(cell: CallableCell, partialDino = {}) {
+export const sampleDino = (partialDino: Partial<Dino> = {}) => {
   return {
     ...{
       name: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
@@ -31,15 +24,35 @@ export async function sampleDino(cell: CallableCell, partialDino = {}) {
     },
     ...partialDino,
   };
-}
+};
 
-export async function createDino(
+export const createDino = async (
   cell: CallableCell,
-  dino = undefined,
-): Promise<AuthoredDino> {
+  dino: Dino | undefined = undefined,
+): Promise<AuthoredDino> => {
   return await cell.callZome({
     zome_name: "dino_adventure",
     fn_name: "create_dino",
-    payload: dino || (await sampleDino(cell)),
+    payload: dino || sampleDino(),
   });
-}
+};
+
+export const sampleAdventure = (partialAdventure: Partial<Adventure> = {}) => {
+  return {
+    ...{
+      participants: [],
+    },
+    ...partialAdventure,
+  };
+};
+
+export const createAdventure = async (
+  cell: CallableCell,
+  adventure: Adventure | undefined = undefined,
+): Promise<AuthoredAdventure> => {
+  return await cell.callZome({
+    zome_name: "dino_adventure",
+    fn_name: "create_adventure",
+    payload: adventure || sampleAdventure(),
+  });
+};

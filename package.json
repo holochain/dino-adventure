@@ -17,13 +17,17 @@
     "build:happ": "npm run build:zomes && hc app pack workdir --recursive",
     "build:zomes": "cargo build --release --target wasm32-unknown-unknown",
     "format": "npm run format --workspace ui && npm run format --workspace tests && cargo fmt",
-    "lint": "npm run lint --workspace ui && cargo fmt --all -- --check && cargo clippy --all-targets --all-features -- --deny warnings"
+    "lint": "npm run lint --workspace ui && npm run lint --workspace tests && cargo fmt --all -- --check && cargo clippy --all-targets --all-features -- --deny warnings"
   },
   "devDependencies": {
+    "@eslint/js": "^9.26.0",
     "@holochain/hc-spin": "^0.500.1",
     "concurrently": "^9.1.0",
     "get-port-cli": "^3.0.0",
-    "prettier": "^3.5.3"
+    "prettier": "^3.5.3",
+    "eslint": "^9.26.0",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.32.1"
   },
   "engines": {
     "node": ">=16.0.0"
