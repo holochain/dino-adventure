@@ -4,5 +4,7 @@ import tailwindcss from "@tailwindcss/vite";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [svelte(), tailwindcss()],
+/* eslint-disable */
+plugins: [svelte(), tailwindcss()],
+/* eslint-enable */
 });

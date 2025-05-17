@@ -16,7 +16,8 @@
     "package": "npm run build:happ && npm run package --workspace ui && hc web-app pack workdir --recursive",
     "build:happ": "npm run build:zomes && hc app pack workdir --recursive",
     "build:zomes": "cargo build --release --target wasm32-unknown-unknown",
-    "format": "npm run format --workspace ui && npm run format --workspace tests && cargo fmt"
+    "format": "npm run format --workspace ui && npm run format --workspace tests && cargo fmt",
+    "lint": "npm run lint --workspace ui && cargo clippy --all-targets --all-features -- --deny warnings"
   },
   "devDependencies": {
     "@holochain/hc-spin": "^0.500.1",

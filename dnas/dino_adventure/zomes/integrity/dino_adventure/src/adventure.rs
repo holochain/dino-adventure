@@ -30,8 +30,9 @@ pub fn validate_delete_adventure(
     _original_action: EntryCreationAction,
     _original_adventure: Adventure,
 ) -> ExternResult<ValidateCallbackResult> {
-    // TODO: add the appropriate validation rules
-    Ok(ValidateCallbackResult::Valid)
+    Ok(ValidateCallbackResult::Invalid(
+        "Adventure cannot be deleted".to_string(),
+    ))
 }
 
 pub fn validate_create_link_all_adventures(
@@ -54,7 +55,7 @@ pub fn validate_create_link_all_adventures(
         .ok_or(wasm_error!(WasmErrorInner::Guest(
             "Linked action must reference an entry".to_string()
         )))?;
-    // TODO: add the appropriate validation rules
+
     Ok(ValidateCallbackResult::Valid)
 }
 
@@ -65,8 +66,9 @@ pub fn validate_delete_link_all_adventures(
     _target: AnyLinkableHash,
     _tag: LinkTag,
 ) -> ExternResult<ValidateCallbackResult> {
-    // TODO: add the appropriate validation rules
-    Ok(ValidateCallbackResult::Valid)
+    Ok(ValidateCallbackResult::Invalid(
+        "Adventure cannot be deleted".to_string(),
+    ))
 }
 
 pub fn validate_create_link_my_adventures(
@@ -96,17 +98,21 @@ pub fn validate_create_link_my_adventures(
         )));
     }
 
-    // TODO: add the appropriate validation rules
     Ok(ValidateCallbackResult::Valid)
 }
 
 pub fn validate_delete_link_my_adventures(
-    _action: DeleteLink,
-    _original_action: CreateLink,
+    action: DeleteLink,
+    original_action: CreateLink,
     _base: AnyLinkableHash,
     _target: AnyLinkableHash,
     _tag: LinkTag,
 ) -> ExternResult<ValidateCallbackResult> {
-    // TODO: add the appropriate validation rules
+    if action.author != original_action.author {
+        return Err(wasm_error!(WasmErrorInner::Guest(
+            "Only the author can delete their own adventure".to_string()
+        )));
+    }
+
     Ok(ValidateCallbackResult::Valid)
 }

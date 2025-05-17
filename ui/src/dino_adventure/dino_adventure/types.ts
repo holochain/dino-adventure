@@ -109,10 +109,8 @@ export interface AuthoredAdventure {
   address: ActionHash;
 }
 
-export interface NestBatch {}
-
 export interface AuthoredNestBatch {
-  nest_batch: NestBatch;
+  nest_batch: object;
   author: AgentPubKey;
   created_at: Timestamp;
   address: ActionHash;

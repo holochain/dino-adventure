@@ -1,4 +1,4 @@
-use crate::all_adventures::{get_all_agent_adventures_local, get_all_my_adventures_local};
+use crate::adventure::{get_all_agent_adventures_local, get_all_my_adventures_local};
 use crate::types::{AuthoredNest, AuthoredNestBatch, CreateNestRequest, NestBatchesWithNests};
 use dino_adventure_integrity::{EntryTypes, LinkTypes, Nest, NestBatch};
 use hdk::prelude::*;
@@ -122,7 +122,7 @@ pub fn get_nest_batches_with_nests_local(
                         {
                             out.nests
                                 .entry(ActionHashB64::from(nest_batch_address.clone()))
-                                .or_insert(Default::default())
+                                .or_default()
                                 .push(nest);
                         }
                     }

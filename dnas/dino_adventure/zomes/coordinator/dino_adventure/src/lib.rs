@@ -2,8 +2,6 @@ use dino_adventure_integrity::*;
 use hdk::prelude::*;
 
 mod adventure;
-mod all_adventures;
-mod all_dinos;
 mod dino;
 mod invite;
 mod nest;
@@ -90,7 +88,7 @@ pub fn recv_remote_signal(signal: AppRemoteSignal) -> ExternResult<()> {
 
         // Tell the UI that we received a ping
         emit_signal(Signal::IncomingPing {
-            sent_at: sent_at.clone(),
+            sent_at,
             sender: caller.clone(),
         })?;
 

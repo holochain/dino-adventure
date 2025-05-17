@@ -56,7 +56,7 @@ impl TryFrom<Record> for AuthoredAdventure {
             Some(adventure) => Ok(AuthoredAdventure {
                 adventure,
                 author: value.action().author().clone(),
-                created_at: value.action().timestamp().clone(),
+                created_at: value.action().timestamp(),
                 address: value.action_address().clone(),
             }),
             None => Err(wasm_error!(WasmErrorInner::Guest(
@@ -90,7 +90,7 @@ impl TryFrom<(Record, ActionHash)> for AuthoredNestBatch {
             Some(nest_batch) => Ok(AuthoredNestBatch {
                 nest_batch,
                 author: value.action().author().clone(),
-                created_at: value.action().timestamp().clone(),
+                created_at: value.action().timestamp(),
                 address: value.action_address().clone(),
                 adventure_address,
             }),

@@ -23,7 +23,6 @@ pub enum EntryTypes {
 #[derive(Serialize, Deserialize)]
 #[hdk_link_types]
 pub enum LinkTypes {
-    DinoUpdates,
     AllDinos,
     AllAdventures,
     MyAdventures,
@@ -250,9 +249,6 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
             tag,
             action,
         } => match link_type {
-            LinkTypes::DinoUpdates => {
-                validate_create_link_dino_updates(action, base_address, target_address, tag)
-            }
             LinkTypes::AllDinos => {
                 validate_create_link_all_dinos(action, base_address, target_address, tag)
             }
@@ -277,13 +273,6 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
             original_action,
             action,
         } => match link_type {
-            LinkTypes::DinoUpdates => validate_delete_link_dino_updates(
-                action,
-                original_action,
-                base_address,
-                target_address,
-                tag,
-            ),
             LinkTypes::AllDinos => validate_delete_link_all_dinos(
                 action,
                 original_action,
@@ -551,9 +540,6 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                     link_type,
                     action,
                 } => match link_type {
-                    LinkTypes::DinoUpdates => {
-                        validate_create_link_dino_updates(action, base_address, target_address, tag)
-                    }
                     LinkTypes::AllDinos => {
                         validate_create_link_all_dinos(action, base_address, target_address, tag)
                     }
@@ -610,13 +596,6 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                         }
                     };
                     match link_type {
-                        LinkTypes::DinoUpdates => validate_delete_link_dino_updates(
-                            action,
-                            create_link.clone(),
-                            base_address,
-                            create_link.target_address,
-                            create_link.tag,
-                        ),
                         LinkTypes::AllDinos => validate_delete_link_all_dinos(
                             action,
                             create_link.clone(),
