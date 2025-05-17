@@ -67,23 +67,15 @@
   {/if}
 
   <a
-    class="absolute bottom-2 left-2"
+    class="fixed bottom-2 left-2"
     href="https://www.flaticon.com/free-icons/dinosaur"
     title="dinosaur icons">Dinosaur icons created by max.icons - Flaticon</a
   >
 
-  <div class="flex flex-row gap-3 status-position">
+  <div class="flex flex-row gap-3 fixed bottom-2 right-2">
     <MyArc />
     <FetchCount />
     <ConnectionsState />
     <Connected />
   </div>
 </main>
-
-<style>
-  .status-position {
-    position: fixed;
-    bottom: 1em;
-    right: 1em;
-  }
-</style>

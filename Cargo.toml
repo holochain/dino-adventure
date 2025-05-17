@@ -12,6 +12,7 @@ resolver = "2"
 hdi = "=0.6.2"
 hdk = "=0.5.2"
 serde = "1.0"
+rand = "0.8.5"
 
 [workspace.dependencies.dino_adventure]
 path = "dnas/dino_adventure/zomes/coordinator/dino_adventure"

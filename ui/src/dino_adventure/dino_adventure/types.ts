@@ -1,5 +1,6 @@
 import type {
   ActionHash,
+  ActionHashB64,
   AgentPubKey,
   Create,
   CreateLink,
@@ -106,4 +107,35 @@ export interface AuthoredAdventure {
   author: AgentPubKey;
   created_at: Timestamp;
   address: ActionHash;
+}
+
+export interface NestBatch {}
+
+export interface AuthoredNestBatch {
+  nest_batch: NestBatch;
+  author: AgentPubKey;
+  created_at: Timestamp;
+  address: ActionHash;
+  adventure_address: ActionHash;
+}
+
+export interface Nest {
+  payload: number[];
+}
+
+export interface AuthoredNest {
+  nest: Nest;
+  author: AgentPubKey;
+  address: ActionHash;
+  nest_batch_address: ActionHash;
+}
+
+export interface NestBatchesWithNests {
+  nest_batches: AuthoredNestBatch[];
+  nests: Record<ActionHashB64, AuthoredNest[]>;
+}
+
+export interface CreateNestRequest {
+  nest_batch_address: ActionHash;
+  size: number;
 }

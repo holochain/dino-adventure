@@ -6,6 +6,9 @@ pub use dino::*;
 pub mod adventure;
 pub use adventure::*;
 
+pub mod nest;
+pub use nest::*;
+
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[hdk_entry_types]
@@ -13,6 +16,8 @@ pub use adventure::*;
 pub enum EntryTypes {
     Dino(Dino),
     Adventure(Adventure),
+    NestBatch(NestBatch),
+    Nest(Nest),
 }
 
 #[derive(Serialize, Deserialize)]
@@ -22,6 +27,8 @@ pub enum LinkTypes {
     AllDinos,
     AllAdventures,
     MyAdventures,
+    AdventureNestBatches,
+    NestBatchNests,
 }
 
 // Validation you perform during the genesis process. Nobody else on the network performs it, only you.
@@ -69,6 +76,12 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                 EntryTypes::Adventure(adventure) => {
                     validate_create_adventure(EntryCreationAction::Create(action), adventure)
                 }
+                EntryTypes::NestBatch(nest_batch) => {
+                    validate_create_nest_batch(EntryCreationAction::Create(action), nest_batch)
+                }
+                EntryTypes::Nest(nest) => {
+                    validate_create_nest(EntryCreationAction::Create(action), nest)
+                }
             },
             OpEntry::UpdateEntry {
                 app_entry, action, ..
@@ -78,6 +91,12 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                 }
                 EntryTypes::Adventure(adventure) => {
                     validate_create_adventure(EntryCreationAction::Update(action), adventure)
+                }
+                EntryTypes::NestBatch(nest_batch) => {
+                    validate_create_nest_batch(EntryCreationAction::Update(action), nest_batch)
+                }
+                EntryTypes::Nest(nest) => {
+                    validate_create_nest(EntryCreationAction::Update(action), nest)
                 }
             },
             _ => Ok(ValidateCallbackResult::Valid),
@@ -126,6 +145,37 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                             original_create_action,
                             original_adventure,
                         )
+                    }
+                    EntryTypes::NestBatch(nest_batch) => {
+                        let original_app_entry =
+                            must_get_valid_record(action.clone().original_action_address)?;
+                        let original_nest_batch = match NestBatch::try_from(original_app_entry) {
+                            Ok(entry) => entry,
+                            Err(e) => {
+                                return Ok(ValidateCallbackResult::Invalid(format!(
+                                    "Expected to get NestBatch from Record: {e:?}"
+                                )));
+                            }
+                        };
+                        validate_update_nest_batch(
+                            action,
+                            nest_batch,
+                            original_create_action,
+                            original_nest_batch,
+                        )
+                    }
+                    EntryTypes::Nest(nest) => {
+                        let original_app_entry =
+                            must_get_valid_record(action.clone().original_action_address)?;
+                        let original_nest = match Nest::try_from(original_app_entry) {
+                            Ok(entry) => entry,
+                            Err(e) => {
+                                return Ok(ValidateCallbackResult::Invalid(format!(
+                                    "Expected to get Nest from Record: {e:?}"
+                                )));
+                            }
+                        };
+                        validate_update_nest(action, nest, original_create_action, original_nest)
                     }
                 }
             }
@@ -181,6 +231,16 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                     original_action,
                     original_adventure,
                 ),
+                EntryTypes::NestBatch(original_nest_batch) => validate_delete_nest_batch(
+                    delete_entry.clone().action,
+                    original_action,
+                    original_nest_batch,
+                ),
+                EntryTypes::Nest(original_nest) => validate_delete_nest(
+                    delete_entry.clone().action,
+                    original_action,
+                    original_nest,
+                ),
             }
         }
         FlatOp::RegisterCreateLink {
@@ -201,6 +261,12 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
             }
             LinkTypes::MyAdventures => {
                 validate_create_link_my_adventures(action, base_address, target_address, tag)
+            }
+            LinkTypes::AdventureNestBatches => {
+                validate_create_link_adventure_nest_batch(action, base_address, target_address, tag)
+            }
+            LinkTypes::NestBatchNests => {
+                validate_create_link_nest_batch_nest(action, base_address, target_address, tag)
             }
         },
         FlatOp::RegisterDeleteLink {
@@ -239,6 +305,20 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                 target_address,
                 tag,
             ),
+            LinkTypes::AdventureNestBatches => validate_delete_link_adventure_nest_batch(
+                action,
+                original_action,
+                base_address,
+                target_address,
+                tag,
+            ),
+            LinkTypes::NestBatchNests => validate_delete_link_nest_batch_nest(
+                action,
+                original_action,
+                base_address,
+                target_address,
+                tag,
+            ),
         },
         FlatOp::StoreRecord(store_record) => {
             match store_record {
@@ -251,6 +331,12 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                     }
                     EntryTypes::Adventure(adventure) => {
                         validate_create_adventure(EntryCreationAction::Create(action), adventure)
+                    }
+                    EntryTypes::NestBatch(nest_batch) => {
+                        validate_create_nest_batch(EntryCreationAction::Create(action), nest_batch)
+                    }
+                    EntryTypes::Nest(nest) => {
+                        validate_create_nest(EntryCreationAction::Create(action), nest)
                     }
                 },
                 // Complementary validation to the `RegisterUpdate` Op, in which the record itself is validated
@@ -332,6 +418,63 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                                 Ok(result)
                             }
                         }
+                        EntryTypes::NestBatch(nest_batch) => {
+                            let result = validate_create_nest_batch(
+                                EntryCreationAction::Update(action.clone()),
+                                nest_batch.clone(),
+                            )?;
+                            if let ValidateCallbackResult::Valid = result {
+                                let original_nest_batch: Option<NestBatch> = original_record
+                                    .entry()
+                                    .to_app_option()
+                                    .map_err(|e| wasm_error!(e))?;
+                                let original_nest_batch = match original_nest_batch {
+                                    Some(nest_batch) => nest_batch,
+                                    None => {
+                                        return Ok(
+                                            ValidateCallbackResult::Invalid(
+                                                "The updated entry type must be the same as the original entry type"
+                                                    .to_string(),
+                                            ),
+                                        );
+                                    }
+                                };
+                                validate_update_nest_batch(
+                                    action,
+                                    nest_batch,
+                                    original_action,
+                                    original_nest_batch,
+                                )
+                            } else {
+                                Ok(result)
+                            }
+                        }
+                        EntryTypes::Nest(nest) => {
+                            let result = validate_create_nest(
+                                EntryCreationAction::Update(action.clone()),
+                                nest.clone(),
+                            )?;
+                            if let ValidateCallbackResult::Valid = result {
+                                let original_nest: Option<Nest> = original_record
+                                    .entry()
+                                    .to_app_option()
+                                    .map_err(|e| wasm_error!(e))?;
+                                let original_nest = match original_nest {
+                                    Some(nest) => nest,
+                                    None => {
+                                        return Ok(
+                                            ValidateCallbackResult::Invalid(
+                                                "The updated entry type must be the same as the original entry type"
+                                                    .to_string(),
+                                            ),
+                                        );
+                                    }
+                                };
+                                validate_update_nest(action, nest, original_action, original_nest)
+                            } else {
+                                Ok(result)
+                            }
+                        }
                     }
                 }
                 // Complementary validation to the `RegisterDelete` Op, in which the record itself is validated
@@ -390,6 +533,12 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                         EntryTypes::Adventure(original_adventure) => {
                             validate_delete_adventure(action, original_action, original_adventure)
                         }
+                        EntryTypes::NestBatch(original_nest_batch) => {
+                            validate_delete_nest_batch(action, original_action, original_nest_batch)
+                        }
+                        EntryTypes::Nest(original_nest) => {
+                            validate_delete_nest(action, original_action, original_nest)
+                        }
                     }
                 }
                 // Complementary validation to the `RegisterCreateLink` Op, in which the record itself is validated
@@ -415,6 +564,18 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                         tag,
                     ),
                     LinkTypes::MyAdventures => validate_create_link_my_adventures(
+                        action,
+                        base_address,
+                        target_address,
+                        tag,
+                    ),
+                    LinkTypes::AdventureNestBatches => validate_create_link_adventure_nest_batch(
+                        action,
+                        base_address,
+                        target_address,
+                        tag,
+                    ),
+                    LinkTypes::NestBatchNests => validate_create_link_nest_batch_nest(
                         action,
                         base_address,
                         target_address,
@@ -471,6 +632,22 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                             create_link.tag,
                         ),
                         LinkTypes::MyAdventures => validate_delete_link_my_adventures(
+                            action,
+                            create_link.clone(),
+                            base_address,
+                            create_link.target_address,
+                            create_link.tag,
+                        ),
+                        LinkTypes::AdventureNestBatches => {
+                            validate_delete_link_adventure_nest_batch(
+                                action,
+                                create_link.clone(),
+                                base_address,
+                                create_link.target_address,
+                                create_link.tag,
+                            )
+                        }
+                        LinkTypes::NestBatchNests => validate_delete_link_nest_batch_nest(
                             action,
                             create_link.clone(),
                             base_address,

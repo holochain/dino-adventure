@@ -6,7 +6,8 @@ mod all_adventures;
 mod all_dinos;
 mod dino;
 mod invite;
-mod test;
+mod nest;
+mod ping;
 mod types;
 
 // Called the first time a zome call is made to the cell containing this zome

@@ -27,6 +27,11 @@ pub fn get_all_adventures_local() -> ExternResult<Vec<AuthoredAdventure>> {
 
 #[hdk_extern]
 pub fn get_all_my_adventures_local() -> ExternResult<Vec<AuthoredAdventure>> {
+    let current_agent = agent_info()?.agent_initial_pubkey;
+    get_all_agent_adventures_local(current_agent)
+}
+
+pub fn get_all_agent_adventures_local(author: AgentPubKey) -> ExternResult<Vec<AuthoredAdventure>> {
     let path = Path::from("my_adventures");
     let links = get_links(
         GetLinksInputBuilder::try_new(path.path_entry_hash()?, LinkTypes::MyAdventures)?
@@ -34,7 +39,6 @@ pub fn get_all_my_adventures_local() -> ExternResult<Vec<AuthoredAdventure>> {
             .build(),
     )?;
 
-    let current_agent = agent_info()?.agent_initial_pubkey;
     let mut out = Vec::with_capacity(links.len());
     for link in links {
         if let Ok(action_hash) = link.target.try_into() {
@@ -43,7 +47,7 @@ pub fn get_all_my_adventures_local() -> ExternResult<Vec<AuthoredAdventure>> {
             // Ignore records not authored the current agent
             if maybe_record
                 .as_ref()
-                .map(|r| r.action().author() != &current_agent)
+                .map(|r| r.action().author() != &author)
                 .unwrap_or(false)
             {
                 continue;
