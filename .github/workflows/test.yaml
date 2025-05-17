@@ -21,6 +21,16 @@ jobs:
         with:
           name: holochain-ci
 
-      - name: Install and test
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Install dependencies
         run: |
-          nix develop --command bash -c "npm ci && npm run test"
+          nix develop --command bash -c "npm ci"
+
+      - name: Lint
+        run: |
+          nix develop --command bash -c "npm run lint"
+
+      - name: Test
+        run: |
+          nix develop --command bash -c "npm test"
