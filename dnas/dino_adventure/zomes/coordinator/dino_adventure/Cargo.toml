@@ -11,3 +11,4 @@ name = "dino_adventure"
 hdk = { workspace = true }
 serde = { workspace = true }
 dino_adventure_integrity = { workspace = true }
+rand = { workspace = true }

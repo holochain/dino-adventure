@@ -1,218 +1,100 @@
 import { assert, test } from "vitest";
+import { dhtSync, runScenario } from "@holochain/tryorama";
+import { AuthoredDino, createDino, sampleDino } from "./common.js";
 
-import {
-  ActionHash,
-  AppBundleSource,
-  CreateLink,
-  DeleteLink,
-  fakeActionHash,
-  fakeAgentPubKey,
-  fakeEntryHash,
-  Link,
-  NewEntryAction,
-  Record,
-  SignedActionHashed,
-} from "@holochain/client";
-import { CallableCell, dhtSync, runScenario } from "@holochain/tryorama";
-import { decode } from "@msgpack/msgpack";
-
-import { createDino, sampleDino } from "./common.js";
-
-test("create Dino", async () => {
-  await runScenario(async scenario => {
+test("create dino", async () => {
+  await runScenario(async (scenario) => {
     // Construct proper paths for your app.
     // This assumes app bundle created by the `hc app pack` command.
     const testAppPath = process.cwd() + "/../workdir/DinoAdventure.happ";
 
     // Set up the app to be installed
-    const appSource = { appBundleSource: { path: testAppPath } };
+    const appSource = { appBundleSource: { type: "path", value: testAppPath } };
 
-    // Add 2 players with the test app to the Scenario. The returned players
-    // can be destructured.
-    const [alice, bob] = await scenario.addPlayersWithApps([appSource, appSource]);
-
-    // Shortcut peer discovery through gossip and register all agents in every
-    // conductor of the scenario.
-    await scenario.shareAllAgents();
+    const [alice] = await scenario.addPlayersWithApps([appSource]);
 
     // Alice creates a Dino
-    const record: Record = await createDino(alice.cells[0]);
+    const record: AuthoredDino = await createDino(alice.cells[0]);
     assert.ok(record);
   });
 });
 
-test("create and read Dino", async () => {
-  await runScenario(async scenario => {
+test("create and get all dinos", async () => {
+  await runScenario(async (scenario) => {
     // Construct proper paths for your app.
     // This assumes app bundle created by the `hc app pack` command.
     const testAppPath = process.cwd() + "/../workdir/DinoAdventure.happ";
 
     // Set up the app to be installed
-    const appSource = { appBundleSource: { path: testAppPath } };
+    const appSource = { appBundleSource: { type: "path", value: testAppPath } };
 
     // Add 2 players with the test app to the Scenario. The returned players
     // can be destructured.
-    const [alice, bob] = await scenario.addPlayersWithApps([appSource, appSource]);
+    const [alice, bob] = await scenario.addPlayersWithApps([
+      appSource,
+      appSource,
+    ]);
 
     // Shortcut peer discovery through gossip and register all agents in every
     // conductor of the scenario.
     await scenario.shareAllAgents();
 
-    const sample = await sampleDino(alice.cells[0]);
+    const sample1 = sampleDino({
+      name: "dino 1",
+    });
+    const sample2 = sampleDino({
+      name: "dino 2",
+    });
 
     // Alice creates a Dino
-    const record: Record = await createDino(alice.cells[0], sample);
-    assert.ok(record);
+    const record1: AuthoredDino = await createDino(alice.cells[0], sample1);
+    assert.ok(record1);
+
+    // Bob creates a Dino
+    const record2: AuthoredDino = await createDino(bob.cells[0], sample2);
 
     // Wait for the created entry to be propagated to the other node.
     await dhtSync([alice, bob], alice.cells[0].cell_id[0]);
 
-    // Bob gets the created Dino
-    const createReadOutput: Record = await bob.cells[0].callZome({
+    // Bob gets the created Dinos
+    const createReadOutput: AuthoredDino[] = await bob.cells[0].callZome({
       zome_name: "dino_adventure",
-      fn_name: "get_original_dino",
-      payload: record.signed_action.hashed.hash,
+      fn_name: "get_all_dinos",
+      payload: null,
     });
-    assert.deepEqual(sample, decode((createReadOutput.entry as any).Present.entry) as any);
-  });
-});
+    createReadOutput.sort((a, b) => a.dino.name.localeCompare(b.dino.name));
+    assert.deepEqual([record1, record2], createReadOutput);
 
-test("create and update Dino", async () => {
-  await runScenario(async scenario => {
-    // Construct proper paths for your app.
-    // This assumes app bundle created by the `hc app pack` command.
-    const testAppPath = process.cwd() + "/../workdir/DinoAdventure.happ";
-
-    // Set up the app to be installed
-    const appSource = { appBundleSource: { path: testAppPath } };
-
-    // Add 2 players with the test app to the Scenario. The returned players
-    // can be destructured.
-    const [alice, bob] = await scenario.addPlayersWithApps([appSource, appSource]);
-
-    // Shortcut peer discovery through gossip and register all agents in every
-    // conductor of the scenario.
-    await scenario.shareAllAgents();
-
-    // Alice creates a Dino
-    const record: Record = await createDino(alice.cells[0]);
-    assert.ok(record);
-
-    const originalActionHash = record.signed_action.hashed.hash;
-
-    // Alice updates the Dino
-    let contentUpdate: any = await sampleDino(alice.cells[0]);
-    let updateInput = {
-      original_dino_hash: originalActionHash,
-      previous_dino_hash: originalActionHash,
-      updated_dino: contentUpdate,
-    };
-
-    let updatedRecord: Record = await alice.cells[0].callZome({
+    // Bob gets the created Dinos locally
+    const createReadOutputLocal: AuthoredDino[] = await bob.cells[0].callZome({
       zome_name: "dino_adventure",
-      fn_name: "update_dino",
-      payload: updateInput,
+      fn_name: "get_all_dinos_local",
+      payload: null,
     });
-    assert.ok(updatedRecord);
+    createReadOutputLocal.sort((a, b) =>
+      a.dino.name.localeCompare(b.dino.name),
+    );
+    assert.deepEqual(createReadOutput, createReadOutputLocal);
 
-    // Wait for the updated entry to be propagated to the other node.
-    await dhtSync([alice, bob], alice.cells[0].cell_id[0]);
-
-    // Bob gets the updated Dino
-    const readUpdatedOutput0: Record = await bob.cells[0].callZome({
+    // Alice gets the created Dinos
+    const createReadOutput2: AuthoredDino[] = await alice.cells[0].callZome({
       zome_name: "dino_adventure",
-      fn_name: "get_latest_dino",
-      payload: updatedRecord.signed_action.hashed.hash,
+      fn_name: "get_all_dinos",
+      payload: null,
     });
-    assert.deepEqual(contentUpdate, decode((readUpdatedOutput0.entry as any).Present.entry) as any);
+    createReadOutput2.sort((a, b) => a.dino.name.localeCompare(b.dino.name));
+    assert.deepEqual([record1, record2], createReadOutput2);
 
-    // Alice updates the Dino again
-    contentUpdate = await sampleDino(alice.cells[0]);
-    updateInput = {
-      original_dino_hash: originalActionHash,
-      previous_dino_hash: updatedRecord.signed_action.hashed.hash,
-      updated_dino: contentUpdate,
-    };
-
-    updatedRecord = await alice.cells[0].callZome({
-      zome_name: "dino_adventure",
-      fn_name: "update_dino",
-      payload: updateInput,
-    });
-    assert.ok(updatedRecord);
-
-    // Wait for the updated entry to be propagated to the other node.
-    await dhtSync([alice, bob], alice.cells[0].cell_id[0]);
-
-    // Bob gets the updated Dino
-    const readUpdatedOutput1: Record = await bob.cells[0].callZome({
-      zome_name: "dino_adventure",
-      fn_name: "get_latest_dino",
-      payload: updatedRecord.signed_action.hashed.hash,
-    });
-    assert.deepEqual(contentUpdate, decode((readUpdatedOutput1.entry as any).Present.entry) as any);
-
-    // Bob gets all the revisions for Dino
-    const revisions: Record[] = await bob.cells[0].callZome({
-      zome_name: "dino_adventure",
-      fn_name: "get_all_revisions_for_dino",
-      payload: originalActionHash,
-    });
-    assert.equal(revisions.length, 3);
-    assert.deepEqual(contentUpdate, decode((revisions[2].entry as any).Present.entry) as any);
-  });
-});
-
-test("create and delete Dino", async () => {
-  await runScenario(async scenario => {
-    // Construct proper paths for your app.
-    // This assumes app bundle created by the `hc app pack` command.
-    const testAppPath = process.cwd() + "/../workdir/DinoAdventure.happ";
-
-    // Set up the app to be installed
-    const appSource = { appBundleSource: { path: testAppPath } };
-
-    // Add 2 players with the test app to the Scenario. The returned players
-    // can be destructured.
-    const [alice, bob] = await scenario.addPlayersWithApps([appSource, appSource]);
-
-    // Shortcut peer discovery through gossip and register all agents in every
-    // conductor of the scenario.
-    await scenario.shareAllAgents();
-
-    const sample = await sampleDino(alice.cells[0]);
-
-    // Alice creates a Dino
-    const record: Record = await createDino(alice.cells[0], sample);
-    assert.ok(record);
-
-    await dhtSync([alice, bob], alice.cells[0].cell_id[0]);
-
-    // Alice deletes the Dino
-    const deleteActionHash = await alice.cells[0].callZome({
-      zome_name: "dino_adventure",
-      fn_name: "delete_dino",
-      payload: record.signed_action.hashed.hash,
-    });
-    assert.ok(deleteActionHash);
-
-    // Wait for the entry deletion to be propagated to the other node.
-    await dhtSync([alice, bob], alice.cells[0].cell_id[0]);
-
-    // Bob gets the oldest delete for the Dino
-    const oldestDeleteForDino: SignedActionHashed = await bob.cells[0].callZome({
-      zome_name: "dino_adventure",
-      fn_name: "get_oldest_delete_for_dino",
-      payload: record.signed_action.hashed.hash,
-    });
-    assert.ok(oldestDeleteForDino);
-
-    // Bob gets the deletions for the Dino
-    const deletesForDino: SignedActionHashed[] = await bob.cells[0].callZome({
-      zome_name: "dino_adventure",
-      fn_name: "get_all_deletes_for_dino",
-      payload: record.signed_action.hashed.hash,
-    });
-    assert.equal(deletesForDino.length, 1);
+    // Alice gets the created Dinos locally
+    const createReadOutput2Local: AuthoredDino[] =
+      await alice.cells[0].callZome({
+        zome_name: "dino_adventure",
+        fn_name: "get_all_dinos_local",
+        payload: null,
+      });
+    createReadOutput2Local.sort((a, b) =>
+      a.dino.name.localeCompare(b.dino.name),
+    );
+    assert.deepEqual(createReadOutput2, createReadOutput2Local);
   });
 });

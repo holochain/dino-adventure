@@ -1,85 +1,80 @@
 <script lang="ts">
-import type { ActionHash, AppClient, HolochainError } from "@holochain/client";
-import { AppWebsocket } from "@holochain/client";
-import { onMount, setContext } from "svelte";
+  import logo from "./assets/holochainLogo.svg";
+  import {
+    getAgentPubKeyB64,
+    getDinosFirstLoaded,
+    getDinoState,
+    getMyLatestAdventures,
+    endAdventure,
+    clearAdventureState,
+  } from "./api";
+  import Connected from "./components/Connected.svelte";
+  import CreateDino from "./components/CreateDino.svelte";
+  import DinoGathering from "./components/DinoGathering.svelte";
+  import { encodeHashToBase64 } from "@holochain/client";
+  import ConnectionsState from "./components/ConnectionsState.svelte";
+  import FetchCount from "./components/FetchCount.svelte";
+  import AdventureAssembly from "./components/AdventureAssembly.svelte";
+  import MyArc from "./components/MyArc.svelte";
+  import RawInfo from "./components/RawInfo.svelte";
+  import Adventure from "./components/Adventure.svelte";
 
-import logo from "./assets/holochainLogo.svg";
-import { type ClientContext, clientContext } from "./contexts";
+  let thisAgentHasNoDinos = $derived(
+    Object.values(getDinoState()).find(
+      (d) => encodeHashToBase64(d.author) === getAgentPubKeyB64(),
+    ) === undefined,
+  );
 
-let client: AppClient | undefined;
-let error: HolochainError | undefined;
-let loading = false;
-
-const appClientContext = {
-  getClient: async () => {
-    if (!client) {
-      client = await AppWebsocket.connect();
-    }
-    return client;
-  },
-};
-
-onMount(async () => {
-  try {
-    loading = true;
-    client = await appClientContext.getClient();
-  } catch (e) {
-    error = e as HolochainError;
-  } finally {
-    loading = false;
-  }
-});
-
-setContext<ClientContext>(clientContext, appClientContext);
+  const handleEndAdventure = () => {
+    endAdventure();
+    clearAdventureState();
+  };
 </script>
 
 <main>
-  <div>
-    <a href="https://developer.holochain.org/get-started/" target="_blank">
-      <img src={logo} class="logo holochain" alt="holochain logo" />
-    </a>
+  <img class="w-dvw fixed h-dvh -z-10 opacity-10" alt="" src={logo} />
+
+  <div class=" p-2 flex flex-row gap-2 justify-end">
+    {#if !!getMyLatestAdventures()}
+      <button class="btn btn-ghost" onclick={handleEndAdventure}
+        >End adventure</button
+      >
+    {/if}
+
+    <RawInfo />
   </div>
-  <h1>Holochain Svelte hApp</h1>
-  <div>
-    <div class="card">
-      {#if loading}
-        <p>connecting...</p>
-      {:else if error}
-        <p>{error.message}</p>
-      {:else}
-        <p>Client is connected.</p>
-      {/if}
+
+  {#if !getDinosFirstLoaded()}
+    <div
+      class="flex flex-row w-full h-dvh justify-center items-center fixed top-0 left-0 right-0 bottom-0"
+    >
+      <p class="text-2xl">Preparing your adventure!</p>
     </div>
-    <p>
-      Import scaffolded components into <code>src/App.svelte</code> to use your
-      hApp
-    </p>
-    <p class="read-the-docs">Click on the Holochain logo to learn more</p>
+  {:else if thisAgentHasNoDinos}
+    <CreateDino />
+  {:else if !!getMyLatestAdventures()}
+    <Adventure />
+  {:else}
+    <DinoGathering />
+    {#if Object.values(getDinoState()).length === 1}
+      <div class="w-full flex flex-row justify-center">
+        <p>Waiting for more Dinos to gather</p>
+      </div>
+    {:else if Object.values(getDinoState()).length > 1}
+      <AdventureAssembly />
+    {/if}
+  {/if}
+
+  <a
+    class="fixed bottom-2 left-2"
+    href="https://www.flaticon.com/free-icons/dinosaur"
+    title="dinosaur icons">Dinosaur icons created by max.icons - Flaticon</a
+  >
+
+  <div class="flex flex-row gap-3 fixed bottom-2 right-2">
+    <MyArc />
+    <FetchCount />
+    <ConnectionsState />
+    <Connected />
   </div>
 </main>
-
-<style>
-.logo {
-  height: 15em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-  width: auto;
-}
-
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-
-.logo.holochain:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
-}
-</style>
