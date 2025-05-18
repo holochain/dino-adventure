@@ -1,6 +1,6 @@
 manifest_version: '1'
 name: DinoAdventure
-description: null
+description: A testing app for Holochain
 roles:
 - name: dino_adventure
   provisioning:
