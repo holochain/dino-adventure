@@ -1,0 +1,48 @@
+name: Release
+
+on:
+  create:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  create_release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install nix
+        uses: cachix/install-nix-action@v31
+        with:
+          install_url: https://releases.nixos.org/nix/nix-2.28.3/install
+
+      - uses: cachix/cachix-action@v16
+        with:
+          name: holochain-ci
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          tag: ${{ github.ref_name }}
+        run: |
+          gh release create "$tag" \
+              --repo="$GITHUB_REPOSITORY" \
+              --title="${GITHUB_REPOSITORY#*/} ${tag#v}" \
+              --generate-notes
+
+      - name: Attach hApp to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          tag: ${{ github.ref_name }}
+        run: |
+          nix develop --command npm ci
+          nix develop --command npm run package
+          
+          cp workdir/DinoAdventure.happ dino-adventure-${{ env.tag }}.happ
+          cp workdir/DinoAdventure.webhapp dino-adventure-${{ env.tag }}.webhapp
+          
+          gh release upload ${{ env.tag }} dino-adventure-${{ env.tag }}.happ --clobber
+          gh release upload ${{ env.tag }} dino-adventure-${{ env.tag }}.webhapp --clobber
