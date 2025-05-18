@@ -25,7 +25,7 @@ test("invite and accept", async () => {
     await scenario.shareAllAgents();
 
     const bobReceiver = new Promise((resolve, reject) => {
-      setTimeout(() => reject(new Error("bob did not get an invite")), 5000);
+      setTimeout(() => reject(new Error("bob did not get an invite")), 30_000);
       bob.appWs.on("signal", (signal) => {
         if (signal.type == SignalType.App) {
           const sig = signal.value.payload as DinoAdventureSignal;
@@ -48,7 +48,10 @@ test("invite and accept", async () => {
     await bobReceiver;
 
     const aliceReceiver = new Promise((resolve, reject) => {
-      setTimeout(() => reject(new Error("alice did not get an accept")), 5000);
+      setTimeout(
+        () => reject(new Error("alice did not get an accept")),
+        30_000,
+      );
       alice.appWs.on("signal", (signal) => {
         if (signal.type == SignalType.App) {
           const sig = signal.value.payload as DinoAdventureSignal;

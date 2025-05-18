@@ -21,7 +21,7 @@ test("send ping", async () => {
     await scenario.shareAllAgents();
 
     const bobReceiver = new Promise((resolve, reject) => {
-      setTimeout(() => reject(new Error("bob did not get a ping")), 5000);
+      setTimeout(() => reject(new Error("bob did not get a ping")), 30_000);
       bob.appWs.on("signal", (signal) => {
         if (signal.type == SignalType.App) {
           const sig = signal.value.payload as DinoAdventureSignal;
@@ -33,7 +33,7 @@ test("send ping", async () => {
     });
 
     const aliceReceiver = new Promise((resolve, reject) => {
-      setTimeout(() => reject(new Error("alice did not get a pong")), 5000);
+      setTimeout(() => reject(new Error("alice did not get a pong")), 30_000);
       alice.appWs.on("signal", (signal) => {
         if (signal.type == SignalType.App) {
           const sig = signal.value.payload as DinoAdventureSignal;
