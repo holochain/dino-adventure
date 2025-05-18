@@ -8,9 +8,14 @@ pub struct Adventure {
 
 pub fn validate_create_adventure(
     _action: EntryCreationAction,
-    _adventure: Adventure,
+    adventure: Adventure,
 ) -> ExternResult<ValidateCallbackResult> {
-    // TODO: add the appropriate validation rules
+    if adventure.participants.len() < 2 {
+        return Err(wasm_error!(WasmErrorInner::Guest(
+            "Adventure must have at least 2 participants".to_string()
+        )));
+    }
+
     Ok(ValidateCallbackResult::Valid)
 }
 

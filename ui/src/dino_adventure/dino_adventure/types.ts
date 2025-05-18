@@ -124,6 +124,7 @@ export interface Nest {
 export interface AuthoredNest {
   nest: Nest;
   author: AgentPubKey;
+  created_at: Timestamp;
   address: ActionHash;
   nest_batch_address: ActionHash;
 }

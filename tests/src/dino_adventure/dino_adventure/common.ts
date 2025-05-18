@@ -3,6 +3,8 @@ import { CallableCell } from "@holochain/tryorama";
 import {
   Adventure,
   AuthoredAdventure,
+  AuthoredNestBatch,
+  CreateNestRequest,
 } from "ui/src/dino_adventure/dino_adventure/types";
 
 export interface Dino {
@@ -54,5 +56,30 @@ export const createAdventure = async (
     zome_name: "dino_adventure",
     fn_name: "create_adventure",
     payload: adventure || sampleAdventure(),
+  });
+};
+
+export const createNestBatch = async (
+  cell: CallableCell,
+): Promise<AuthoredNestBatch> => {
+  return await cell.callZome({
+    zome_name: "dino_adventure",
+    fn_name: "create_nest_batch",
+    payload: null,
+  });
+};
+
+export const createNest = async (
+  cell: CallableCell,
+  nestBatchAddress: ActionHash,
+  size: number = 50,
+): Promise<AuthoredNestBatch> => {
+  return await cell.callZome({
+    zome_name: "dino_adventure",
+    fn_name: "create_nest",
+    payload: {
+      nest_batch_address: nestBatchAddress,
+      size,
+    } as CreateNestRequest,
   });
 };

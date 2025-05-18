@@ -105,6 +105,7 @@ impl TryFrom<(Record, ActionHash)> for AuthoredNestBatch {
 pub struct AuthoredNest {
     pub nest: Nest,
     pub author: AgentPubKey,
+    pub created_at: Timestamp,
     pub address: ActionHash,
     pub nest_batch_address: ActionHash,
 }
@@ -124,6 +125,7 @@ impl TryFrom<(Record, ActionHash)> for AuthoredNest {
             Some(nest) => Ok(AuthoredNest {
                 nest,
                 author: value.action().author().clone(),
+                created_at: value.action().timestamp(),
                 address: value.action_address().clone(),
                 nest_batch_address,
             }),
