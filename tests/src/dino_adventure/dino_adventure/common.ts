@@ -5,7 +5,7 @@ import {
   AuthoredAdventure,
   AuthoredNestBatch,
   CreateNestRequest,
-} from "ui/src/dino_adventure/dino_adventure/types";
+} from "ui/src/types";
 
 export interface Dino {
   name: string;

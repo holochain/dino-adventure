@@ -1,7 +1,7 @@
 import { test } from "vitest";
 import { runScenario } from "@holochain/tryorama";
 import { SignalType } from "@holochain/client";
-import type { DinoAdventureSignal } from "ui/src/dino_adventure/dino_adventure/types";
+import type { DinoAdventureSignal } from "ui/src/types";
 
 test("send ping", async () => {
   await runScenario(async (scenario) => {

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { getDinoState } from "../api";
   import Dino from "./Dino.svelte";
-  import type { AuthoredDino } from "../dino_adventure/dino_adventure/types";
+  import type { AuthoredDino } from "../types";
 
   const calculateHeight = (index: number, max: number): number => {
     const pos = index - max / 2;

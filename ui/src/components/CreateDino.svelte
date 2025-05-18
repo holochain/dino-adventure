@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { createDino } from "../../api";
-  import { DinoKinds } from "./types";
-  import Dino from "../../components/Dino.svelte";
+  import { createDino } from "../api";
+  import { DinoKinds } from "../types";
+  import Dino from "./Dino.svelte";
 
   let name = $state("");
   let dinoKind = $state("");

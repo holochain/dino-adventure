@@ -1,7 +1,4 @@
-import type {
-  AdventureInvite,
-  AdventureInviteAcceptance,
-} from "../dino_adventure/dino_adventure/types";
+import type { AdventureInvite, AdventureInviteAcceptance } from "../types";
 import { runOnClient, signalHandler } from "./common.svelte";
 import {
   type AgentPubKey,

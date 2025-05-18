@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { AuthoredDino } from "../dino_adventure/dino_adventure/types";
+  import type { AuthoredDino } from "../types";
 
   import allosaurus from "../assets/dinos/allosaurus.png";
   import ankylosaurus from "../assets/dinos/ankylosaurus.png";

@@ -6,10 +6,7 @@ import {
   createNestBatch,
   sampleAdventure,
 } from "./common";
-import {
-  AuthoredAdventure,
-  NestBatchesWithNests,
-} from "ui/src/dino_adventure/dino_adventure/types";
+import { AuthoredAdventure, NestBatchesWithNests } from "ui/src/types";
 import { encodeHashToBase64 } from "@holochain/client";
 
 test("create nest batch, nests and get", async () => {

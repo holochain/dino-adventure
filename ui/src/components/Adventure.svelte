@@ -3,27 +3,23 @@
     getAgentPubKeyB64,
     getDinoState,
     getMyLatestAdventures,
+    createNest,
+    createNestBatch,
+    getNestBatchesWithNests,
+    getIncomingPings,
+    getIncomingPongs,
+    getSentPings,
+    getWantedSentPings,
+    rawrAtAgent,
   } from "../api";
   import {
     type AgentPubKeyB64,
     decodeHashFromBase64,
     encodeHashToBase64,
   } from "@holochain/client";
-  import {
-    getIncomingPings,
-    getIncomingPongs,
-    getSentPings,
-    getWantedSentPings,
-    rawrAtAgent,
-  } from "../api/test.svelte";
   import Dino from "./Dino.svelte";
-  import {
-    createNest,
-    createNestBatch,
-    getNestBatchesWithNests,
-  } from "../api/nest.svelte";
   import { onDestroy, onMount } from "svelte";
-  import type { NestBatchesWithNests } from "../dino_adventure/dino_adventure/types";
+  import type { NestBatchesWithNests } from "../types";
 
   const otherDinoNames = $derived.by(() => {
     const adventureState = getMyLatestAdventures();
@@ -85,6 +81,10 @@
     return adventureState.adventure.participants
       .map((p) => {
         const participantPubKeyB64 = encodeHashToBase64(p);
+        if (participantPubKeyB64 === getAgentPubKeyB64()) {
+          return;
+        }
+
         const dino = dinoState[participantPubKeyB64];
         if (dino) {
           return {

@@ -5,7 +5,7 @@ import type {
   AdventureInvite,
   AdventureInviteAcceptance,
   DinoAdventureSignal,
-} from "ui/src/dino_adventure/dino_adventure/types";
+} from "ui/src/types";
 
 test("invite and accept", async () => {
   await runScenario(async (scenario) => {

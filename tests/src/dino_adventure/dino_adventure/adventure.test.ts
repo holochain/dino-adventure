@@ -1,7 +1,7 @@
 import { assert, test } from "vitest";
 import { dhtSync, runScenario } from "@holochain/tryorama";
 import { createAdventure, sampleAdventure } from "./common";
-import { AuthoredAdventure } from "ui/src/dino_adventure/dino_adventure/types";
+import { AuthoredAdventure } from "ui/src/types";
 
 test("create adventure and get", async () => {
   await runScenario(async (scenario) => {

@@ -4,7 +4,7 @@ import type {
   AuthoredNestBatch,
   NestBatchesWithNests,
   CreateNestRequest,
-} from "../dino_adventure/dino_adventure/types";
+} from "../types";
 import type { AgentPubKey } from "@holochain/client";
 
 export const createNestBatch = async (): Promise<AuthoredNestBatch> => {

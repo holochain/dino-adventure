@@ -1,7 +1,6 @@
 <script lang="ts">
   import { getNetworkMetrics, getNetworkStats } from "../api";
   import {
-    type AgentPubKey,
     type AppInfo,
     type DnaHashB64,
     encodeHashToBase64,
@@ -51,7 +50,7 @@
     return out;
   });
 
-  const transformAppInfo = (appInfo: AppInfo | null): object => {
+  const transformAppInfo = (appInfo: AppInfo | null | undefined): object => {
     const out = {} as Record<string, unknown>;
 
     if (appInfo) {

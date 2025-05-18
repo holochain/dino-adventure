@@ -1,15 +1,15 @@
 <script lang="ts">
   import logo from "./assets/holochainLogo.svg";
   import {
-    getMyAdventures,
     getAgentPubKeyB64,
     getDinosFirstLoaded,
     getDinoState,
     getMyLatestAdventures,
     endAdventure,
+    clearAdventureState,
   } from "./api";
   import Connected from "./components/Connected.svelte";
-  import CreateDino from "./dino_adventure/dino_adventure/CreateDino.svelte";
+  import CreateDino from "./components/CreateDino.svelte";
   import DinoGathering from "./components/DinoGathering.svelte";
   import { encodeHashToBase64 } from "@holochain/client";
   import ConnectionsState from "./components/ConnectionsState.svelte";
@@ -18,7 +18,6 @@
   import MyArc from "./components/MyArc.svelte";
   import RawInfo from "./components/RawInfo.svelte";
   import Adventure from "./components/Adventure.svelte";
-  import { clearAdventureState } from "./api/test.svelte";
 
   let thisAgentHasNoDinos = $derived(
     Object.values(getDinoState()).find(

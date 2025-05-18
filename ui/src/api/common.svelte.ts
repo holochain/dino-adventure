@@ -8,7 +8,7 @@ import {
   SignalType,
   type SignedActionHashed,
 } from "@holochain/client";
-import type { DinoAdventureSignal } from "../dino_adventure/dino_adventure/types";
+import type { DinoAdventureSignal } from "../types";
 
 let client: AppWebsocket | null = null;
 

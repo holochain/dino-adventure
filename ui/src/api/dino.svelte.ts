@@ -1,7 +1,4 @@
-import type {
-  AuthoredDino,
-  Dino,
-} from "../dino_adventure/dino_adventure/types";
+import type { AuthoredDino, Dino } from "../types";
 import { callZome, signalHandler } from "./common.svelte";
 import {
   type AgentPubKeyB64,

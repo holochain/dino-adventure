@@ -1,7 +1,4 @@
-import type {
-  Adventure,
-  AuthoredAdventure,
-} from "../dino_adventure/dino_adventure/types";
+import type { Adventure, AuthoredAdventure } from "../types";
 import { callZome, getAgentPubKeyB64, signalHandler } from "./common.svelte";
 import {
   type ActionHashB64,

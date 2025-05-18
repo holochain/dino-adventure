@@ -18,7 +18,7 @@
     encodeHashToBase64,
   } from "@holochain/client";
   import Dino from "./Dino.svelte";
-  import type { AuthoredDino } from "../dino_adventure/dino_adventure/types";
+  import type { AuthoredDino } from "../types";
 
   let dragHighlight = $state(false);
 
