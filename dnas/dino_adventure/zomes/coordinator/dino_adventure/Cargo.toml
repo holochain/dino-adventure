@@ -10,5 +10,6 @@ name = "dino_adventure"
 [dependencies]
 hdk = { workspace = true }
 serde = { workspace = true }
+holochain_serialized_bytes = { workspace = true }
 dino_adventure_integrity = { workspace = true }
 rand = { workspace = true }
