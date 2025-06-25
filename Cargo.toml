@@ -9,10 +9,11 @@ members = ["dnas/*/zomes/coordinator/*", "dnas/*/zomes/integrity/*"]
 resolver = "2"
 
 [workspace.dependencies]
-hdi = "=0.6.2"
-hdk = "=0.5.2"
+hdi = "=0.6.3-rc.0"
+hdk = "=0.5.3-rc.0"
 serde = "1.0"
 rand = "0.8.5"
+holochain_serialized_bytes = "*"
 
 [workspace.dependencies.dino_adventure]
 path = "dnas/dino_adventure/zomes/coordinator/dino_adventure"
