@@ -21,6 +21,8 @@
           binaryen
         ]);
 
+        ELECTRON_BINARY = "${pkgs.electron}/bin/electron";
+
         shellHook = ''
           export PS1='\[\033[1;34m\][holonix:\w]\$\[\033[0m\] '
         '';
