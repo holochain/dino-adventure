@@ -13,13 +13,13 @@ npm install
 
 **Run all the other instructions in this README from inside this nix shell, otherwise they won't work**.
 
-## Running 2 agents
+## Running 3 agents
  
 ```bash
 npm run start
 ```
 
-This will create a network of 2 nodes connected to each other and their respective UIs.
+This will create a network of 3 nodes connected to each other and their respective UIs.
 It will also bring up the Holochain Playground for advanced introspection of the conductors.
 
 ## Running the backend tests
