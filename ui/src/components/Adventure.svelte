@@ -291,7 +291,7 @@
       <p>
         Echoed RAAWRs: {dinoCard.incomingPongs.length > 0
           ? Math.round(
-              (dinoCard.sentPings / dinoCard.incomingPongs.length) * 100,
+              (dinoCard.incomingPongs.length / dinoCard.sentPings) * 100,
             )
           : 0}%
       </p>
