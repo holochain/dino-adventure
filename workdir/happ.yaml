@@ -1,4 +1,4 @@
-manifest_version: '1'
+manifest_version: '0'
 name: DinoAdventure
 description: A testing app for Holochain
 roles:
@@ -7,7 +7,7 @@ roles:
     strategy: create
     deferred: false
   dna:
-    bundled: '../dnas/dino_adventure/workdir/dino_adventure.dna'
+    path: '../dnas/dino_adventure/workdir/dino_adventure.dna'
     modifiers:
       network_seed: null
       properties: null

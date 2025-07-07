@@ -30,12 +30,13 @@ pub fn create_adventure(adventure: Adventure) -> ExternResult<AuthoredAdventure>
 pub fn unlink_my_adventure(adventure_hash: ActionHash) -> ExternResult<()> {
     let path = Path::from("my_adventures");
     let links = get_links(
-        GetLinksInputBuilder::try_new(path.path_entry_hash()?, LinkTypes::MyAdventures)?.build(),
+        LinkQuery::try_new(path.path_entry_hash()?, LinkTypes::MyAdventures)?,
+        GetStrategy::Local
     )?;
     for link in links {
         if let Some(hash) = link.target.into_action_hash() {
             if hash == adventure_hash {
-                delete_link(link.create_link_hash)?;
+                delete_link(link.create_link_hash, GetOptions::local())?;
             }
         }
     }
@@ -47,9 +48,8 @@ pub fn unlink_my_adventure(adventure_hash: ActionHash) -> ExternResult<()> {
 pub fn get_all_adventures_local() -> ExternResult<Vec<AuthoredAdventure>> {
     let path = Path::from("all_adventures");
     let links = get_links(
-        GetLinksInputBuilder::try_new(path.path_entry_hash()?, LinkTypes::AllAdventures)?
-            .get_options(GetStrategy::Local)
-            .build(),
+        LinkQuery::try_new(path.path_entry_hash()?, LinkTypes::AllAdventures)?,
+        GetStrategy::Local
     )?;
 
     let mut out = Vec::with_capacity(links.len());
@@ -75,9 +75,8 @@ pub fn get_all_my_adventures_local() -> ExternResult<Vec<AuthoredAdventure>> {
 pub fn get_all_agent_adventures_local(author: AgentPubKey) -> ExternResult<Vec<AuthoredAdventure>> {
     let path = Path::from("my_adventures");
     let links = get_links(
-        GetLinksInputBuilder::try_new(path.path_entry_hash()?, LinkTypes::MyAdventures)?
-            .get_options(GetStrategy::Local)
-            .build(),
+        LinkQuery::try_new(path.path_entry_hash()?, LinkTypes::MyAdventures)?,
+        GetStrategy::Local
     )?;
 
     let mut out = Vec::with_capacity(links.len());
