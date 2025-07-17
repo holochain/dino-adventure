@@ -73,13 +73,18 @@ pub fn get_nest_batches_with_nests_local(
         ))
     })?;
 
+    get_nest_batches_with_nests_by_adventure_hash_local(agent_current_adventure.address.clone())
+}
+
+#[hdk_extern]
+pub fn get_nest_batches_with_nests_by_adventure_hash_local(adventure_hash: ActionHash) -> ExternResult<NestBatchesWithNests> {
     let nest_batch_links = get_links(
         GetLinksInputBuilder::try_new(
-            agent_current_adventure.address.clone(),
+            adventure_hash.clone(),
             LinkTypes::AdventureNestBatches,
         )?
-        .get_options(GetStrategy::Local)
-        .build(),
+            .get_options(GetStrategy::Local)
+            .build(),
     )?;
 
     let mut out = NestBatchesWithNests {
@@ -92,7 +97,7 @@ pub fn get_nest_batches_with_nests_local(
             let maybe_record = get::<ActionHash>(target, GetOptions::local())?;
 
             if let Some(nest_batch) = maybe_record
-                .map(|r| (r, agent_current_adventure.address.clone()))
+                .map(|r| (r, adventure_hash.clone()))
                 .map(TryInto::try_into)
                 .transpose()?
             {
@@ -105,8 +110,8 @@ pub fn get_nest_batches_with_nests_local(
                         nest_batch_address.clone(),
                         LinkTypes::NestBatchNests,
                     )?
-                    .get_options(GetStrategy::Local)
-                    .build(),
+                        .get_options(GetStrategy::Local)
+                        .build(),
                 )?;
 
                 out.nests.reserve(nest_links.len());

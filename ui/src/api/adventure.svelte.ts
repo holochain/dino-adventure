@@ -8,7 +8,7 @@ import {
 
 let myAdventuresState: Record<ActionHashB64, AuthoredAdventure> = $state({});
 
-const myLatestAdventuresState = $derived.by(() => {
+const myLatestAdventureState = $derived.by(() => {
   const all = Object.values(myAdventuresState);
   all.sort((a, b) => a.created_at - b.created_at);
 
@@ -17,7 +17,7 @@ const myLatestAdventuresState = $derived.by(() => {
 
 export const getMyAdventures = () => myAdventuresState;
 
-export const getMyLatestAdventures = () => myLatestAdventuresState;
+export const getMyLatestAdventure = () => myLatestAdventureState;
 
 export const createAdventure = async (
   adventure: Adventure,
@@ -36,7 +36,7 @@ export const createAdventure = async (
 };
 
 export const endAdventure = async () => {
-  const latestAdventureState = myLatestAdventuresState;
+  const latestAdventureState = myLatestAdventureState;
   if (!latestAdventureState) {
     console.error("No adventure to end");
     return;

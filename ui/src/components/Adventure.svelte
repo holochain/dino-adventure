@@ -2,7 +2,7 @@
   import {
     getAgentPubKeyB64,
     getDinoState,
-    getMyLatestAdventures,
+    getMyLatestAdventure,
     createNest,
     createNestBatch,
     getNestBatchesWithNests,
@@ -22,7 +22,7 @@
   import type { NestBatchesWithNests } from "../types";
 
   const otherDinoNames = $derived.by(() => {
-    const adventureState = getMyLatestAdventures();
+    const adventureState = getMyLatestAdventure();
     if (!adventureState) {
       return {};
     }
@@ -67,7 +67,7 @@
   };
 
   const dinoRawrCardState = $derived.by(() => {
-    let adventureState = getMyLatestAdventures();
+    let adventureState = getMyLatestAdventure();
     let dinoState = getDinoState();
     let sentPings = getSentPings();
     let wantedSentPings = getWantedSentPings();
@@ -108,7 +108,7 @@
   }
 
   const dinoNestCardState = $derived.by(() => {
-    const myLatestAdventures = getMyLatestAdventures();
+    const myLatestAdventures = getMyLatestAdventure();
     if (!myLatestAdventures) {
       return [];
     }
@@ -162,7 +162,7 @@
       return;
     }
 
-    const adventureState = getMyLatestAdventures();
+    const adventureState = getMyLatestAdventure();
     if (!adventureState) {
       setTimeout(pollForNestBatchesWithNests, 100);
       return;

@@ -4,7 +4,7 @@
     getAgentPubKeyB64,
     getDinosFirstLoaded,
     getDinoState,
-    getMyLatestAdventures,
+    getMyLatestAdventure,
     endAdventure,
     clearAdventureState,
   } from "./api";
@@ -18,6 +18,7 @@
   import MyArc from "./components/MyArc.svelte";
   import RawInfo from "./components/RawInfo.svelte";
   import Adventure from "./components/Adventure.svelte";
+  import AllAdventures from "./components/AllAdventures.svelte";
 
   let thisAgentHasNoDinos = $derived(
     Object.values(getDinoState()).find(
@@ -29,13 +30,30 @@
     endAdventure();
     clearAdventureState();
   };
+
+  let showPreviousAdventures = $state(false);
+    const togglePreviousAdventures = () => {
+        showPreviousAdventures = !showPreviousAdventures;
+    };
 </script>
 
 <main>
   <img class="w-dvw fixed h-dvh -z-10 opacity-10" alt="" src={logo} />
 
   <div class=" p-2 flex flex-row gap-2 justify-end">
-    {#if !!getMyLatestAdventures()}
+    {#if !getMyLatestAdventure()}
+      {#if !showPreviousAdventures}
+        <button class="btn btn-ghost" onclick={togglePreviousAdventures}
+          >Previous adventures</button
+        >
+      {:else}
+        <button class="btn btn-ghost" onclick={togglePreviousAdventures}
+          >Hide previous adventures</button
+        >
+      {/if}
+    {/if}
+
+    {#if !!getMyLatestAdventure()}
       <button class="btn btn-ghost" onclick={handleEndAdventure}
         >End adventure</button
       >
@@ -52,8 +70,10 @@
     </div>
   {:else if thisAgentHasNoDinos}
     <CreateDino />
-  {:else if !!getMyLatestAdventures()}
+  {:else if !!getMyLatestAdventure()}
     <Adventure />
+  {:else if showPreviousAdventures}
+    <AllAdventures />
   {:else}
     <DinoGathering />
     {#if Object.values(getDinoState()).length === 1}
