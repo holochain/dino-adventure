@@ -40,7 +40,10 @@
     Velociraptor: velociraptor,
   };
 
-  let { authoredDino }: { authoredDino: AuthoredDino } = $props();
+  let {
+    authoredDino,
+    enableCopyAgentKey = false,
+  }: { authoredDino: AuthoredDino; enableCopyAgentKey?: boolean } = $props();
 
   const handleDragStart = (event: DragEvent) => {
     event.dataTransfer?.setData(
@@ -51,12 +54,16 @@
       }),
     );
   };
+
+  const handleClick = () => {
+    navigator.clipboard.writeText(encodeHashToBase64(authoredDino.author));
+  };
 </script>
 
 <div
   class="flex flex-col items-center tooltip tooltip-bottom"
   data-tip={authoredDino.author
-    ? `${encodeHashToBase64(authoredDino.author)} chose ${authoredDino.dino.dino_kind.type}`
+    ? `...${encodeHashToBase64(authoredDino.author).slice(-5)} chose ${authoredDino.dino.dino_kind.type}`
     : "Creating..."}
   draggable="true"
   ondragstart={handleDragStart}
@@ -67,5 +74,15 @@
     class="w-16"
     src={lookup[authoredDino.dino.dino_kind.type]}
   />
-  <p>{authoredDino.dino.name}</p>
+  {#if enableCopyAgentKey}
+    <button
+      class="btn btn-circle"
+      aria-label="Copy agent pub key"
+      onclick={handleClick}
+    >
+      {authoredDino.dino.name}
+    </button>
+  {:else}
+    <p>{authoredDino.dino.name}</p>
+  {/if}
 </div>

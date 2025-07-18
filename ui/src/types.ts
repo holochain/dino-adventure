@@ -138,3 +138,8 @@ export interface CreateNestRequest {
   nest_batch_address: ActionHash;
   size: number;
 }
+
+export interface AdventureParticipantSummary {
+  batchCount: number;
+  nestCounts: number[];
+}

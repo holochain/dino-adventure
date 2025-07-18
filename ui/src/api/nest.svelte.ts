@@ -5,7 +5,7 @@ import type {
   NestBatchesWithNests,
   CreateNestRequest,
 } from "../types";
-import type { AgentPubKey } from "@holochain/client";
+import type { ActionHash, AgentPubKey } from "@holochain/client";
 
 export const createNestBatch = async (): Promise<AuthoredNestBatch> => {
   return await callZome({
@@ -35,5 +35,16 @@ export const getNestBatchesWithNests = async (
     zome_name: "dino_adventure",
     fn_name: "get_nest_batches_with_nests_local",
     payload: author,
+  });
+};
+
+export const getNestBatchesForAdventure = async (
+  adventureAddress: ActionHash,
+): Promise<NestBatchesWithNests> => {
+  return await callZome({
+    role_name: "dino_adventure",
+    zome_name: "dino_adventure",
+    fn_name: "get_nest_batches_with_nests_by_adventure_hash_local",
+    payload: adventureAddress,
   });
 };
