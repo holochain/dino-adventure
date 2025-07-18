@@ -227,3 +227,64 @@ test("end my adventure", async () => {
     assert.deepEqual([], createReadOutput4);
   });
 });
+
+test("all adventures", async () => {
+  await runScenario(async (scenario) => {
+    // Construct proper paths for your app.
+    // This assumes app bundle created by the `hc app pack` command.
+    const testAppPath = process.cwd() + "/../workdir/DinoAdventure.happ";
+
+    // Set up the app to be installed
+    const appSource = { appBundleSource: { type: "path", value: testAppPath } };
+
+    const [alice, bob] = await scenario.addPlayersWithApps([
+      appSource,
+      appSource,
+    ]);
+
+    // Alice creates an adventure
+    const adventure1 = sampleAdventure({
+      participants: [alice.cells[0].cell_id[1], bob.cells[0].cell_id[1]],
+    });
+    const record1: AuthoredAdventure = await createAdventure(
+        alice.cells[0],
+        adventure1,
+    );
+
+    // Bob creates an adventure
+    const adventure2 = sampleAdventure({
+      participants: [bob.cells[0].cell_id[1], alice.cells[0].cell_id[1]],
+    });
+    const record2: AuthoredAdventure = await createAdventure(
+        bob.cells[0],
+        adventure2,
+    );
+
+    // Sync the DHT
+    await scenario.shareAllAgents();
+    await dhtSync([alice, bob], alice.cells[0].cell_id[0]);
+
+    // Alice gets all adventures
+    const allAdventures1: AuthoredAdventure[] =
+      await alice.cells[0].callZome({
+        zome_name: "dino_adventure",
+        fn_name: "get_all_adventures_local",
+        payload: null,
+      });
+
+    assert.equal(2, allAdventures1.length);
+    allAdventures1.sort((a, b) => a.created_at - b.created_at);
+
+    // Bob gets all adventures
+    const allAdventures2: AuthoredAdventure[] = await bob.cells[0].callZome({
+      zome_name: "dino_adventure",
+      fn_name: "get_all_adventures_local",
+      payload: null,
+    });
+
+    assert.equal(2, allAdventures2.length);
+    allAdventures2.sort((a, b) => a.created_at - b.created_at);
+
+    assert.deepEqual(allAdventures1, allAdventures2);
+  });
+});
