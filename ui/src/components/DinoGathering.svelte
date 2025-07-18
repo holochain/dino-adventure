@@ -52,7 +52,7 @@
       <div style={`margin-top: ${calculateHeight(index, size - 1)}px`}>
         <div>
           {#if v}
-            <Dino authoredDino={v} />
+            <Dino authoredDino={v} enableCopyAgentKey={true} />
           {:else}
             <div class="w-16"></div>
           {/if}

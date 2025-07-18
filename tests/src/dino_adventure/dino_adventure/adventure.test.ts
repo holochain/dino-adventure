@@ -246,18 +246,18 @@ test("all adventures", async () => {
     const adventure1 = sampleAdventure({
       participants: [alice.cells[0].cell_id[1], bob.cells[0].cell_id[1]],
     });
-    const record1: AuthoredAdventure = await createAdventure(
-        alice.cells[0],
-        adventure1,
+    await createAdventure(
+      alice.cells[0],
+      adventure1,
     );
 
     // Bob creates an adventure
     const adventure2 = sampleAdventure({
       participants: [bob.cells[0].cell_id[1], alice.cells[0].cell_id[1]],
     });
-    const record2: AuthoredAdventure = await createAdventure(
-        bob.cells[0],
-        adventure2,
+    await createAdventure(
+      bob.cells[0],
+      adventure2,
     );
 
     // Sync the DHT
@@ -265,12 +265,11 @@ test("all adventures", async () => {
     await dhtSync([alice, bob], alice.cells[0].cell_id[0]);
 
     // Alice gets all adventures
-    const allAdventures1: AuthoredAdventure[] =
-      await alice.cells[0].callZome({
-        zome_name: "dino_adventure",
-        fn_name: "get_all_adventures_local",
-        payload: null,
-      });
+    const allAdventures1: AuthoredAdventure[] = await alice.cells[0].callZome({
+      zome_name: "dino_adventure",
+      fn_name: "get_all_adventures_local",
+      payload: null,
+    });
 
     assert.equal(2, allAdventures1.length);
     allAdventures1.sort((a, b) => a.created_at - b.created_at);

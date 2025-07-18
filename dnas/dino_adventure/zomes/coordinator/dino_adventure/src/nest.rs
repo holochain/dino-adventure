@@ -77,12 +77,11 @@ pub fn get_nest_batches_with_nests_local(
 }
 
 #[hdk_extern]
-pub fn get_nest_batches_with_nests_by_adventure_hash_local(adventure_hash: ActionHash) -> ExternResult<NestBatchesWithNests> {
+pub fn get_nest_batches_with_nests_by_adventure_hash_local(
+    adventure_hash: ActionHash,
+) -> ExternResult<NestBatchesWithNests> {
     let nest_batch_links = get_links(
-        GetLinksInputBuilder::try_new(
-            adventure_hash.clone(),
-            LinkTypes::AdventureNestBatches,
-        )?
+        GetLinksInputBuilder::try_new(adventure_hash.clone(), LinkTypes::AdventureNestBatches)?
             .get_options(GetStrategy::Local)
             .build(),
     )?;
@@ -110,8 +109,8 @@ pub fn get_nest_batches_with_nests_by_adventure_hash_local(adventure_hash: Actio
                         nest_batch_address.clone(),
                         LinkTypes::NestBatchNests,
                     )?
-                        .get_options(GetStrategy::Local)
-                        .build(),
+                    .get_options(GetStrategy::Local)
+                    .build(),
                 )?;
 
                 out.nests.reserve(nest_links.len());

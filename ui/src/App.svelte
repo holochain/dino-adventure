@@ -32,9 +32,9 @@
   };
 
   let showPreviousAdventures = $state(false);
-    const togglePreviousAdventures = () => {
-        showPreviousAdventures = !showPreviousAdventures;
-    };
+  const togglePreviousAdventures = () => {
+    showPreviousAdventures = !showPreviousAdventures;
+  };
 </script>
 
 <main>
