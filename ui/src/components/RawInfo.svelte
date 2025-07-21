@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { getNetworkMetrics, getNetworkStats } from "../api";
+  import { getNetworkMetrics, getNetworkStats, getPeerMeta } from "../api";
   import {
     type AppInfo,
     type DnaHashB64,
@@ -17,19 +17,22 @@
     }
 
     let out = {} as Record<DnaHashB64, object>;
-    for (const [key, value] of Object.entries(metrics)) {
+    for (const [dnaHash, value] of Object.entries(metrics)) {
       const peerMetaList = [];
       for (const [peerUrl, peerMeta] of Object.entries(
         value.gossip_state_summary.peer_meta,
       )) {
+        const meta = getPeerMeta()[dnaHash]?.[peerUrl] || {};
+
         peerMetaList.push({
           peer_url: peerUrl,
-          meta: peerMeta,
+          gossipMeta: peerMeta,
+          meta,
         });
       }
       peerMetaList.sort((a, b) => a.peer_url.localeCompare(b.peer_url));
 
-      out[key] = {
+      out[dnaHash] = {
         fetch_state_summary: value.fetch_state_summary,
         gossip_state_summary: {
           initiated_round: value.gossip_state_summary.initiated_round,

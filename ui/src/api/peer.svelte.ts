@@ -1,7 +1,10 @@
 import { getAgentPubKeyB64, runOnClient } from "./common.svelte";
 import {
-  type DumpNetworkStatsResponse,
   type DumpNetworkMetricsResponse,
+  type DumpNetworkStatsResponse,
+  type AgentMetaInfo,
+  type AgentMetaInfoResponse,
+  type DnaHashB64,
   encodeHashToBase64,
 } from "@holochain/client";
 
@@ -16,6 +19,13 @@ export const getNetworkStats = () => networkStatsState;
 let networkMetricsState = $state<DumpNetworkMetricsResponse>({});
 
 export const getNetworkMetrics = () => networkMetricsState;
+
+// Map from DNA hash, through peer url, of peer meta key to AgentMetaInfo
+const peerMetaState = $state<
+  Record<DnaHashB64, Record<string, Record<string, AgentMetaInfo>>>
+>({});
+
+export const getPeerMeta = () => peerMetaState;
 
 const myLocalAgent = $derived.by(() => {
   const metrics = Object.values(networkMetricsState);
@@ -81,10 +91,76 @@ const updateNetworkMetrics = () => {
     .catch(console.error);
 };
 
+const updatePeerMetaState = () => {
+  runOnClient(async (client) => {
+    return await client.agentInfo(
+      {
+        dna_hashes: null,
+      },
+      1000,
+    );
+  })
+    .then((agentInfos) => {
+      const decodedInfos = agentInfos.map((info): { url?: string } => {
+        const infoObj = JSON.parse(info) as unknown;
+        if (!infoObj || typeof infoObj !== "object") {
+          console.warn(`Invalid agent info format: ${info}`);
+          return { url: undefined };
+        }
+
+        const outer = infoObj?.agentInfo as unknown;
+        if (!outer || typeof outer !== "string") {
+          console.warn(`Invalid agent info format: ${info}`);
+          return { url: undefined };
+        }
+
+        return JSON.parse(outer) as { url?: string };
+      });
+
+      for (const connStats of networkStatsState.connections) {
+        const matchedInfo = decodedInfos.find((info) =>
+          info.url?.includes(connStats.pub_key),
+        );
+        if (!matchedInfo) {
+          console.warn(
+            `No valid agent info found for connection: ${connStats.pub_key}`,
+          );
+          continue;
+        }
+
+        if (!matchedInfo.url) {
+          continue;
+        }
+
+        const url = matchedInfo.url;
+
+        runOnClient(async (client): Promise<AgentMetaInfoResponse> => {
+          return await client.agentMetaInfo(
+            {
+              url,
+            },
+            1000,
+          );
+        })
+          .then((meta) => {
+            for (const [dnaHash, value] of Object.entries(meta)) {
+              if (!peerMetaState[dnaHash]) {
+                peerMetaState[dnaHash] = {};
+              }
+              peerMetaState[dnaHash][url] = value;
+            }
+          })
+          .catch(console.error);
+      }
+    })
+    .catch(console.error);
+};
+
 (() => {
   // Retrieve network stats and metrics every second
   setInterval(() => {
     updateNetworkStats();
     updateNetworkMetrics();
+    updatePeerMetaState();
   }, 1000);
 })();
