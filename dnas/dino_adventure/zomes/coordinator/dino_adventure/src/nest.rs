@@ -40,7 +40,7 @@ pub fn create_nest_batch() -> ExternResult<AuthoredNestBatch> {
 pub fn create_nest(request: CreateNestRequest) -> ExternResult<AuthoredNest> {
     let size = rand::random::<u32>() % request.size;
     let mut payload = vec![0; size as usize];
-    rand::thread_rng().fill_bytes(&mut payload);
+    rand::rng().fill_bytes(&mut payload);
 
     let nest = Nest { payload };
     let nest_hash = create_entry(EntryTypes::Nest(nest))?;
@@ -81,9 +81,8 @@ pub fn get_nest_batches_with_nests_by_adventure_hash_local(
     adventure_hash: ActionHash,
 ) -> ExternResult<NestBatchesWithNests> {
     let nest_batch_links = get_links(
-        GetLinksInputBuilder::try_new(adventure_hash.clone(), LinkTypes::AdventureNestBatches)?
-            .get_options(GetStrategy::Local)
-            .build(),
+        LinkQuery::try_new(adventure_hash.clone(), LinkTypes::AdventureNestBatches)?,
+        GetStrategy::Local
     )?;
 
     let mut out = NestBatchesWithNests {
@@ -105,12 +104,11 @@ pub fn get_nest_batches_with_nests_by_adventure_hash_local(
                 let nest_batch_address = out.nest_batches.last().as_ref().unwrap().address.clone();
 
                 let nest_links = get_links(
-                    GetLinksInputBuilder::try_new(
+                    LinkQuery::try_new(
                         nest_batch_address.clone(),
                         LinkTypes::NestBatchNests,
-                    )?
-                    .get_options(GetStrategy::Local)
-                    .build(),
+                    )?,
+                    GetStrategy::Local
                 )?;
 
                 out.nests.reserve(nest_links.len());
