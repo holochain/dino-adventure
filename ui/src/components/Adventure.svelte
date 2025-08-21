@@ -187,15 +187,19 @@
   let numNests = $state(10);
   let minNestSize = $state(500);
   let maxNestSize = $state(2000);
+  let diggingNests = $state(false);
 
   const digNests = async (event: SubmitEvent) => {
     event.preventDefault();
+
+    diggingNests = true;
 
     try {
       const nestBatch = await createNestBatch();
 
       const createOne = async (count: number) => {
         if (count <= 0) {
+          diggingNests = false;
           return;
         }
 
@@ -218,6 +222,7 @@
       createOne(numNests).catch(console.error);
     } catch (error) {
       console.error("Failed to create nest batch", error);
+      diggingNests = false;
     }
   };
 
@@ -357,7 +362,14 @@
           />
         </label>
 
-        <button type="submit" class="btn btn-primary">DIG!</button>
+        <button type="submit" class="btn btn-primary" disabled={diggingNests}>
+          {#if diggingNests}
+            <span class="loading loading-spinner loading-sm"></span>
+            Digging...
+          {:else}
+            DIG!
+          {/if}
+        </button>
       </form>
     </div>
   </div>
