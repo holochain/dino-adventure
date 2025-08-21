@@ -192,6 +192,14 @@
   const digNests = async (event: SubmitEvent) => {
     event.preventDefault();
 
+    // Guard against accidental double-submit (e.g., Enter key or programmatic calls)
+    if (diggingNests) return;
+
+    // Snapshot values to prevent mid-flight changes from affecting this run
+    const useNumNests = numNests;
+    const useMinNestSize = minNestSize;
+    const useMaxNestSize = maxNestSize;
+
     diggingNests = true;
 
     try {
@@ -203,8 +211,9 @@
           return;
         }
 
-        let size =
-          Math.round(Math.random() * (maxNestSize - minNestSize)) + minNestSize;
+        const size =
+          Math.round(Math.random() * (useMaxNestSize - useMinNestSize)) +
+          useMinNestSize;
 
         createNest({
           nest_batch_address: nestBatch.address,
@@ -219,7 +228,7 @@
           });
       };
 
-      createOne(numNests).catch(console.error);
+      createOne(useNumNests).catch(console.error);
     } catch (error) {
       console.error("Failed to create nest batch", error);
       diggingNests = false;
@@ -337,6 +346,8 @@
             class="input"
             bind:value={numNests}
             required
+            disabled={diggingNests}
+            aria-busy={diggingNests}
           />
         </label>
 
@@ -348,6 +359,8 @@
             class="input"
             bind:value={minNestSize}
             required
+            disabled={diggingNests}
+            aria-busy={diggingNests}
           />
         </label>
 
@@ -359,10 +372,17 @@
             class="input"
             bind:value={maxNestSize}
             required
+            disabled={diggingNests}
+            aria-busy={diggingNests}
           />
         </label>
 
-        <button type="submit" class="btn btn-primary" disabled={diggingNests}>
+        <button
+          type="submit"
+          class="btn btn-primary"
+          disabled={diggingNests}
+          aria-busy={diggingNests}
+        >
           {#if diggingNests}
             <span class="loading loading-spinner loading-sm"></span>
             Digging...
