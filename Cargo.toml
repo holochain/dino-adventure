@@ -9,10 +9,10 @@ members = ["dnas/*/zomes/coordinator/*", "dnas/*/zomes/integrity/*"]
 resolver = "2"
 
 [workspace.dependencies]
-hdi = "=0.6.3"
-hdk = "=0.5.3"
+hdi = "=0.7.0-dev.9"
+hdk = "=0.6.0-dev.10"
 serde = "1.0"
-rand = "0.8.5"
+rand = "0.9"
 holochain_serialized_bytes = "*"
 
 [workspace.dependencies.dino_adventure]
