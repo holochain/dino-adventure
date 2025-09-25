@@ -308,8 +308,11 @@
       </span>
     </p>
 
-    <div class="flex flex-row justify-center" onsubmit={startRawr}>
-      <form class="my-5 flex flex-col items-center gap-5 w-1/2">
+    <div class="flex flex-row justify-center">
+      <form
+        class="my-5 flex flex-col items-center gap-5 w-1/2"
+        onsubmit={startRawr}
+      >
         <label class="select">
           <span class="label">Who?</span>
           <select
@@ -396,8 +399,11 @@
       </span>
     </p>
 
-    <div class="flex flex-row justify-center" onsubmit={digNests}>
-      <form class="my-5 flex flex-col items-center gap-5 w-1/2">
+    <div class="flex flex-row justify-center">
+      <form
+        class="my-5 flex flex-col items-center gap-5 w-1/2"
+        onsubmit={digNests}
+      >
         <label class="input">
           <span class="label">How many nests?</span>
           <input

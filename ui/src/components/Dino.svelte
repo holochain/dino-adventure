@@ -1,5 +1,7 @@
 <script lang="ts">
   import type { AuthoredDino } from "../types";
+  import type { Dino as DinoType } from "../types";
+  type PreviewDino = { dino: DinoType; author?: undefined };
 
   import allosaurus from "../assets/dinos/allosaurus.png";
   import ankylosaurus from "../assets/dinos/ankylosaurus.png";
@@ -43,9 +45,13 @@
   let {
     authoredDino,
     enableCopyAgentKey = false,
-  }: { authoredDino: AuthoredDino; enableCopyAgentKey?: boolean } = $props();
+  }: {
+    authoredDino: AuthoredDino | PreviewDino;
+    enableCopyAgentKey?: boolean;
+  } = $props();
 
   const handleDragStart = (event: DragEvent) => {
+    if (!("author" in authoredDino) || !authoredDino.author) return;
     event.dataTransfer?.setData(
       "text/plain",
       JSON.stringify({
@@ -56,16 +62,17 @@
   };
 
   const handleClick = () => {
+    if (!("author" in authoredDino) || !authoredDino.author) return;
     navigator.clipboard.writeText(encodeHashToBase64(authoredDino.author));
   };
 </script>
 
 <div
   class="flex flex-col items-center tooltip tooltip-bottom"
-  data-tip={authoredDino.author
+  data-tip={"author" in authoredDino && authoredDino.author
     ? `...${encodeHashToBase64(authoredDino.author).slice(-5)} chose ${authoredDino.dino.dino_kind.type}`
     : "Creating..."}
-  draggable="true"
+  draggable={"author" in authoredDino && !!authoredDino.author}
   ondragstart={handleDragStart}
   role="img"
 >

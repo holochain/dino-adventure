@@ -111,14 +111,20 @@
   });
 
   let showConfirm = $state(false);
+  let startingAdventure = $state(false);
 
   const actuallyStartAdventure = async () => {
-    const participants = assembledDinos.reduce((acc, assembledDino) => {
-      acc.push(assembledDino.author);
-      return acc;
-    }, [] as AgentPubKey[]);
+    if (startingAdventure) {
+      return;
+    }
+    startingAdventure = true;
 
     try {
+      const participants = assembledDinos.reduce((acc, assembledDino) => {
+        acc.push(assembledDino.author);
+        return acc;
+      }, [] as AgentPubKey[]);
+
       await createAdventure({
         participants,
       });
@@ -126,6 +132,8 @@
       showConfirm = false;
     } catch (err) {
       console.error("Failed to create adventure", err);
+    } finally {
+      startingAdventure = false;
     }
   };
 
@@ -143,16 +151,40 @@
     <div class="bg-base-100 p-6 rounded-box shadow-xl max-w-lg w-[90%]">
       <h2 class="text-xl font-bold mb-3">Confirm begin adventure</h2>
       <div class="space-y-2 mb-4">
-        <p>Before you begin, please make sure everyone has agreed to start. Once you begin:</p>
+        <p>
+          Before you begin, please make sure everyone has agreed to start. Once
+          you begin:
+        </p>
         <ul class="list-disc ml-6">
           <li>You will not be able to add more dinos to this adventure.</li>
-          <li>You will not be able to accept any more invites from other dinos.</li>
+          <li>
+            You will not be able to accept any more invites from other dinos.
+          </li>
         </ul>
-        <p class="mt-2 text-sm opacity-80">All participants should confirm readiness out-of-band (chat, voice, or video) before proceeding.</p>
+        <p class="mt-2 text-sm opacity-80">
+          All participants should confirm readiness out-of-band (chat, voice, or
+          video) before proceeding.
+        </p>
       </div>
       <div class="flex gap-2 justify-end">
-        <button class="btn btn-ghost" onclick={cancelBegin}>Cancel</button>
-        <button class="btn btn-primary" onclick={actuallyStartAdventure}>Confirm and begin</button>
+        <button
+          class="btn btn-ghost"
+          onclick={cancelBegin}
+          disabled={startingAdventure}>Cancel</button
+        >
+        <button
+          class="btn btn-primary"
+          onclick={actuallyStartAdventure}
+          disabled={startingAdventure}
+          aria-busy={startingAdventure}
+        >
+          {#if startingAdventure}
+            <span class="loading loading-spinner loading-sm"></span>
+            Starting...
+          {:else}
+            Confirm and begin
+          {/if}
+        </button>
       </div>
     </div>
   </div>
