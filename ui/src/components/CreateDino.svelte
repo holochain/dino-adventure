@@ -4,7 +4,7 @@
   import Dino from "./Dino.svelte";
 
   let name = $state("");
-  let dinoKind = $state("");
+  let dinoKind = $state<(typeof DinoKinds)[number] | "">("");
 </script>
 
 <div>
@@ -23,7 +23,7 @@
       />
 
       <select class="select my-2" name="Dino Kind" bind:value={dinoKind}>
-        <option disabled selected value="">What kind of dinosaur?</option>
+        <option disabled value="">What kind of dinosaur?</option>
         {#each DinoKinds as kind}
           <option>{kind}</option>
         {/each}
@@ -40,9 +40,10 @@
             dino: {
               name: name,
               dino_kind: {
-                type: dinoKind,
+                type: dinoKind as (typeof DinoKinds)[number],
               },
             },
+            author: undefined,
           }}
         />
       {/if}
@@ -57,7 +58,7 @@
         createDino({
           name: name,
           dino_kind: {
-            type: dinoKind,
+            type: dinoKind as (typeof DinoKinds)[number],
           },
         })}
     >
