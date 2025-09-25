@@ -47,9 +47,14 @@
 
   let selectedRawr = $state("");
   let rawrCount = $state<number>(30);
+  let rawring = $state(false);
+  let rawrCheckInterval: number | undefined = undefined;
 
   const startRawr = (event: SubmitEvent) => {
     event.preventDefault();
+
+    // Prevent double-submit
+    if (rawring) return;
 
     const useSelectedRawr = selectedRawr;
     const useRawrCount = rawrCount;
@@ -59,11 +64,42 @@
       return;
     }
 
+    rawring = true;
+
+    // Fire-and-forget async work
     rawrAtAgent({
       to_agent: decodeHashFromBase64(useSelectedRawr),
       times: useRawrCount,
       interval_ms: 500,
     });
+
+    // Monitor progress: when sentPings catches up to wantedSentPings for this agent, clear busy state
+    const agentB64 = useSelectedRawr;
+    const start = Date.now();
+    const SAFETY_TIMEOUT_MS = Math.max(5000, useRawrCount * 600); // safety timeout
+
+    const checkDone = () => {
+      try {
+        const s = getSentPings()[agentB64] ?? 0;
+        const w = getWantedSentPings()[agentB64] ?? 0;
+        if (s >= w || Date.now() - start > SAFETY_TIMEOUT_MS) {
+          if (rawrCheckInterval !== undefined) clearInterval(rawrCheckInterval);
+          rawrCheckInterval = undefined;
+          // Clear selection so user must choose next dino after a RAWR completes
+          selectedRawr = "";
+          rawring = false;
+        }
+      } catch (e) {
+        console.error("Error checking RAWR progress", e);
+        if (rawrCheckInterval !== undefined) clearInterval(rawrCheckInterval);
+        rawrCheckInterval = undefined;
+        // On error, also clear selection to avoid accidental repeats
+        selectedRawr = "";
+        rawring = false;
+      }
+    };
+
+    rawrCheckInterval = setInterval(checkDone, 200) as unknown as number;
   };
 
   const dinoRawrCardState = $derived.by(() => {
@@ -252,6 +288,10 @@
 
   onDestroy(() => {
     cancelPoll = true;
+    if (rawrCheckInterval !== undefined) {
+      clearInterval(rawrCheckInterval);
+      rawrCheckInterval = undefined;
+    }
   });
 </script>
 
@@ -272,7 +312,13 @@
       <form class="my-5 flex flex-col items-center gap-5 w-1/2">
         <label class="select">
           <span class="label">Who?</span>
-          <select class="select" bind:value={selectedRawr} required>
+          <select
+            class="select"
+            bind:value={selectedRawr}
+            required
+            disabled={rawring}
+            aria-busy={rawring}
+          >
             <option disabled value="">Choose a Dino</option>
             {#each Object.keys(otherDinoNames) as pubKey}
               <option value={pubKey}>{otherDinoNames[pubKey]}</option>
@@ -288,10 +334,24 @@
             class="input"
             bind:value={rawrCount}
             required
+            disabled={rawring}
+            aria-busy={rawring}
           />
         </label>
 
-        <button type="submit" class="btn btn-primary">RAWR!</button>
+        <button
+          type="submit"
+          class="btn btn-primary"
+          disabled={rawring}
+          aria-busy={rawring}
+        >
+          {#if rawring}
+            <span class="loading loading-spinner loading-sm"></span>
+            RAWRing...
+          {:else}
+            RAWR!
+          {/if}
+        </button>
       </form>
     </div>
   </div>
