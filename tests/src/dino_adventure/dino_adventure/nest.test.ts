@@ -1,5 +1,5 @@
 import { assert, test } from "vitest";
-import { dhtSync, runScenario } from "@holochain/tryorama";
+import { AppWithOptions, dhtSync, runScenario } from "@holochain/tryorama";
 import {
   createAdventure,
   createNest,
@@ -16,11 +16,11 @@ test("create nest batch, nests and get", async () => {
     const testAppPath = process.cwd() + "/../workdir/DinoAdventure.happ";
 
     // Set up the app to be installed
-    const appSource = { appBundleSource: { type: "path", value: testAppPath } };
+    const appWithOptions: AppWithOptions = { appBundleSource: { type: "path", value: testAppPath } };
 
     const [alice, bob] = await scenario.addPlayersWithApps([
-      appSource,
-      appSource,
+      appWithOptions,
+      appWithOptions,
     ]);
 
     // Alice creates an adventure
@@ -82,11 +82,11 @@ test("check batch after unlink adventure", async () => {
     const testAppPath = process.cwd() + "/../workdir/DinoAdventure.happ";
 
     // Set up the app to be installed
-    const appSource = { appBundleSource: { type: "path", value: testAppPath } };
+    const appWithOptions: AppWithOptions = { appBundleSource: { type: "path", value: testAppPath } };
 
     const [alice, bob] = await scenario.addPlayersWithApps([
-      appSource,
-      appSource,
+      appWithOptions,
+      appWithOptions,
     ]);
 
     // Alice creates an adventure
@@ -143,11 +143,11 @@ test("Get nests for adventure", async () => {
     const testAppPath = process.cwd() + "/../workdir/DinoAdventure.happ";
 
     // Set up the app to be installed
-    const appSource = { appBundleSource: { type: "path", value: testAppPath } };
+    const appWithOptions: AppWithOptions = { appBundleSource: { type: "path", value: testAppPath } };
 
     const [alice, bob] = await scenario.addPlayersWithApps([
-      appSource,
-      appSource,
+      appWithOptions,
+      appWithOptions,
     ]);
 
     // Alice creates an adventure

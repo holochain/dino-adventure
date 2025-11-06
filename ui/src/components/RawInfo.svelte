@@ -62,7 +62,7 @@
         cellsOut.push({
           role_name: roleName,
           cells: cellInfos.map((cell) => {
-            if (cell.type == "provisioned") {
+            if (cell.type === "provisioned") {
               return {
                 name: cell.value.name,
                 dna_modifiers: cell.value.dna_modifiers,

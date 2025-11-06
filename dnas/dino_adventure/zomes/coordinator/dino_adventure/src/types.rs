@@ -15,8 +15,7 @@ impl TryFrom<Record> for AuthoredDino {
     fn try_from(value: Record) -> ExternResult<Self> {
         let maybe_dino: Option<Dino> = value.entry.to_app_option().map_err(|e| {
             wasm_error!(WasmErrorInner::Guest(format!(
-                "Failed to deserialize Dino: {:?}",
-                e
+                "Failed to deserialize Dino: {e}"
             )))
         })?;
 
@@ -47,8 +46,7 @@ impl TryFrom<Record> for AuthoredAdventure {
     fn try_from(value: Record) -> ExternResult<Self> {
         let maybe_adventure: Option<Adventure> = value.entry.to_app_option().map_err(|e| {
             wasm_error!(WasmErrorInner::Guest(format!(
-                "Failed to deserialize Adventure: {:?}",
-                e
+                "Failed to deserialize Adventure: {e}"
             )))
         })?;
 
@@ -81,8 +79,7 @@ impl TryFrom<(Record, ActionHash)> for AuthoredNestBatch {
     fn try_from((value, adventure_address): (Record, ActionHash)) -> ExternResult<Self> {
         let maybe_nest_batch: Option<NestBatch> = value.entry.to_app_option().map_err(|e| {
             wasm_error!(WasmErrorInner::Guest(format!(
-                "Failed to deserialize NestBatch: {:?}",
-                e
+                "Failed to deserialize NestBatch: {e}"
             )))
         })?;
 
@@ -116,8 +113,7 @@ impl TryFrom<(Record, ActionHash)> for AuthoredNest {
     fn try_from((value, nest_batch_address): (Record, ActionHash)) -> ExternResult<Self> {
         let maybe_nest: Option<Nest> = value.entry.to_app_option().map_err(|e| {
             wasm_error!(WasmErrorInner::Guest(format!(
-                "Failed to deserialize Nest: {:?}",
-                e
+                "Failed to deserialize Nest: {e}"
             )))
         })?;
 
