@@ -82,7 +82,7 @@ pub fn get_nest_batches_with_nests_by_adventure_hash_local(
 ) -> ExternResult<NestBatchesWithNests> {
     let nest_batch_links = get_links(
         LinkQuery::try_new(adventure_hash.clone(), LinkTypes::AdventureNestBatches)?,
-        GetStrategy::Local
+        GetStrategy::Local,
     )?;
 
     let mut out = NestBatchesWithNests {
@@ -104,11 +104,8 @@ pub fn get_nest_batches_with_nests_by_adventure_hash_local(
                 let nest_batch_address = out.nest_batches.last().as_ref().unwrap().address.clone();
 
                 let nest_links = get_links(
-                    LinkQuery::try_new(
-                        nest_batch_address.clone(),
-                        LinkTypes::NestBatchNests,
-                    )?,
-                    GetStrategy::Local
+                    LinkQuery::try_new(nest_batch_address.clone(), LinkTypes::NestBatchNests)?,
+                    GetStrategy::Local,
                 )?;
 
                 out.nests.reserve(nest_links.len());

@@ -20,7 +20,7 @@ let networkMetricsState = $state<DumpNetworkMetricsResponse>({});
 
 export const getNetworkMetrics = () => networkMetricsState;
 
-// Map from DNA hash, through peer url, of peer meta key to AgentMetaInfo
+// Map from DNA hash, through peer url, of peer meta key to PeerMetaInfo
 const peerMetaState = $state<
   Record<DnaHashB64, Record<string, Record<string, PeerMetaInfo>>>
 >({});
