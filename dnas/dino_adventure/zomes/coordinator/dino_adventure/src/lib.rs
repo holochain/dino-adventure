@@ -11,7 +11,7 @@ mod types;
 // Called the first time a zome call is made to the cell containing this zome
 #[hdk_extern]
 pub fn init() -> ExternResult<InitCallbackResult> {
-    let mut listed = BTreeSet::new();
+    let mut listed = HashSet::new();
     listed.insert((zome_info()?.name, "recv_remote_signal".into()));
     create_cap_grant(CapGrantEntry {
         tag: "".to_string(),

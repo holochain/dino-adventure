@@ -2,10 +2,10 @@ import { getAgentPubKeyB64, runOnClient } from "./common.svelte";
 import {
   type DumpNetworkMetricsResponse,
   type DumpNetworkStatsResponse,
-  type AgentMetaInfo,
-  type AgentMetaInfoResponse,
   type DnaHashB64,
   encodeHashToBase64,
+  type PeerMetaInfoResponse,
+  type PeerMetaInfo,
 } from "@holochain/client";
 
 let networkStatsState = $state<DumpNetworkStatsResponse>({
@@ -20,9 +20,9 @@ let networkMetricsState = $state<DumpNetworkMetricsResponse>({});
 
 export const getNetworkMetrics = () => networkMetricsState;
 
-// Map from DNA hash, through peer url, of peer meta key to AgentMetaInfo
+// Map from DNA hash, through peer url, of peer meta key to PeerMetaInfo
 const peerMetaState = $state<
-  Record<DnaHashB64, Record<string, Record<string, AgentMetaInfo>>>
+  Record<DnaHashB64, Record<string, Record<string, PeerMetaInfo>>>
 >({});
 
 export const getPeerMeta = () => peerMetaState;
@@ -134,8 +134,8 @@ const updatePeerMetaState = () => {
 
         const url = matchedInfo.url;
 
-        runOnClient(async (client): Promise<AgentMetaInfoResponse> => {
-          return await client.agentMetaInfo(
+        runOnClient(async (client): Promise<PeerMetaInfoResponse> => {
+          return await client.peerMetaInfo(
             {
               url,
             },

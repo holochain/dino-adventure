@@ -50,7 +50,7 @@ export const runOnClient = async <T>(
     return await cb(client);
   } catch (e) {
     if (e instanceof HolochainError) {
-      if (e.name == "ConnectionError") {
+      if (e.name === "ConnectionError") {
         // Clear the client so that it will be reconnected on the next call
         client = null;
         isConnected = false;
@@ -82,7 +82,7 @@ export class SignalHandler {
   }
 
   handleSignal(signal: Signal) {
-    if (signal.type == SignalType.App) {
+    if (signal.type === SignalType.App) {
       const appSignal = signal.value;
 
       const payload = appSignal.payload as DinoAdventureSignal;

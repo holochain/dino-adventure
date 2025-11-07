@@ -1,5 +1,5 @@
 import { assert, test } from "vitest";
-import { dhtSync, runScenario } from "@holochain/tryorama";
+import { AppWithOptions, dhtSync, runScenario } from "@holochain/tryorama";
 import { AuthoredDino, createDino, sampleDino } from "./common.js";
 
 test("create dino", async () => {
@@ -9,9 +9,11 @@ test("create dino", async () => {
     const testAppPath = process.cwd() + "/../workdir/DinoAdventure.happ";
 
     // Set up the app to be installed
-    const appSource = { appBundleSource: { type: "path", value: testAppPath } };
+    const appWithOptions: AppWithOptions = {
+      appBundleSource: { type: "path", value: testAppPath },
+    };
 
-    const [alice] = await scenario.addPlayersWithApps([appSource]);
+    const [alice] = await scenario.addPlayersWithApps([appWithOptions]);
 
     // Alice creates a Dino
     const record: AuthoredDino = await createDino(alice.cells[0]);
@@ -26,13 +28,11 @@ test("create and get all dinos", async () => {
     const testAppPath = process.cwd() + "/../workdir/DinoAdventure.happ";
 
     // Set up the app to be installed
-    const appSource = { appBundleSource: { type: "path", value: testAppPath } };
+    const appWithOptions: AppWithOptions = { appBundleSource: { type: "path", value: testAppPath } };
 
-    // Add 2 players with the test app to the Scenario. The returned players
-    // can be destructured.
     const [alice, bob] = await scenario.addPlayersWithApps([
-      appSource,
-      appSource,
+      appWithOptions,
+      appWithOptions,
     ]);
 
     // Shortcut peer discovery through gossip and register all agents in every
