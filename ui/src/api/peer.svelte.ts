@@ -1,14 +1,14 @@
 import { getAgentPubKeyB64, runOnClient } from "./common.svelte";
 import {
   type DumpNetworkMetricsResponse,
-  type DumpNetworkStatsResponse,
   type DnaHashB64,
   encodeHashToBase64,
   type PeerMetaInfoResponse,
   type PeerMetaInfo,
+  type TransportStats,
 } from "@holochain/client";
 
-let networkStatsState = $state<DumpNetworkStatsResponse>({
+let networkStatsState = $state<TransportStats>({
   backend: "",
   connections: [],
   peer_urls: [],
@@ -67,7 +67,7 @@ export const getPeerConnectionsState = () => peerConnectionsState;
 export const getFetchQueueCount = () => fetchQueueCountState;
 
 const updateNetworkStats = () => {
-  runOnClient(async (client): Promise<DumpNetworkStatsResponse> => {
+  runOnClient(async (client): Promise<TransportStats> => {
     return await client.dumpNetworkStats(1000);
   })
     .then((stats) => {
