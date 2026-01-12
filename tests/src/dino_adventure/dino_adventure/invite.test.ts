@@ -1,6 +1,6 @@
 import { test } from "vitest";
 import { AppWithOptions, runScenario } from "@holochain/tryorama";
-import { SignalType } from "@holochain/client";
+import { Signal, SignalType } from "@holochain/client";
 import type {
   AdventureInvite,
   AdventureInviteAcceptance,
@@ -14,7 +14,9 @@ test("invite and accept", async () => {
     const testAppPath = process.cwd() + "/../workdir/DinoAdventure.happ";
 
     // Set up the app to be installed
-    const appWithOptions: AppWithOptions = { appBundleSource: { type: "path", value: testAppPath } };
+    const appWithOptions: AppWithOptions = {
+      appBundleSource: { type: "path", value: testAppPath },
+    };
 
     const [alice, bob] = await scenario.addPlayersWithApps([
       appWithOptions,
@@ -26,7 +28,7 @@ test("invite and accept", async () => {
 
     const bobReceiver = new Promise((resolve, reject) => {
       setTimeout(() => reject(new Error("bob did not get an invite")), 30_000);
-      bob.appWs.on("signal", (signal) => {
+      bob.appWs.on("signal", (signal: Signal) => {
         if (signal.type === SignalType.App) {
           const sig = signal.value.payload as DinoAdventureSignal;
           if (sig.type === "AdventureInvite") {
@@ -52,7 +54,7 @@ test("invite and accept", async () => {
         () => reject(new Error("alice did not get an accept")),
         30_000,
       );
-      alice.appWs.on("signal", (signal) => {
+      alice.appWs.on("signal", (signal: Signal) => {
         if (signal.type === SignalType.App) {
           const sig = signal.value.payload as DinoAdventureSignal;
           if (sig.type === "InviteAcceptance") {
