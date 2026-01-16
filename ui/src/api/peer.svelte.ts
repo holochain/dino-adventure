@@ -48,7 +48,7 @@ export interface PeerConnections {
 
 const peerConnectionsState = $derived<PeerConnections>({
   connectedPeers: networkStatsState.connections.length,
-  directConnectedPeers: networkStatsState.connections.filter((c) => c.is_webrtc)
+  directConnectedPeers: networkStatsState.connections.filter((c) => c.is_direct)
     .length,
 });
 
@@ -102,13 +102,17 @@ const updatePeerMetaState = () => {
   })
     .then((agentInfos) => {
       const decodedInfos = agentInfos.map((info): { url?: string } => {
-        const infoObj = JSON.parse(info) as unknown;
-        if (!infoObj || typeof infoObj !== "object") {
+        const infoObj: unknown = JSON.parse(info);
+        if (
+          !infoObj ||
+          typeof infoObj !== "object" ||
+          !("agentInfo" in infoObj)
+        ) {
           console.warn(`Invalid agent info format: ${info}`);
           return { url: undefined };
         }
 
-        const outer = infoObj?.agentInfo as unknown;
+        const outer = infoObj.agentInfo;
         if (!outer || typeof outer !== "string") {
           console.warn(`Invalid agent info format: ${info}`);
           return { url: undefined };
