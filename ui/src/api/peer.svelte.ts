@@ -48,7 +48,7 @@ export interface PeerConnections {
 
 const peerConnectionsState = $derived<PeerConnections>({
   connectedPeers: networkStatsState.connections.length,
-  directConnectedPeers: networkStatsState.connections.filter((c) => c.is_webrtc)
+  directConnectedPeers: networkStatsState.connections.filter((c) => c.is_direct)
     .length,
 });
 
