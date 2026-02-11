@@ -1,5 +1,5 @@
 use crate::types::AuthoredDino;
-use dino_adventure_integrity::*;
+use dino_adventure_integrity::{Dino, EntryTypes, LinkTypes};
 use hdk::prelude::*;
 
 #[hdk_extern]
@@ -33,7 +33,7 @@ fn get_all_dinos_with_options(get_options: GetOptions) -> ExternResult<Vec<Autho
     let path = Path::from("all_dinos");
     let links = get_links(
         LinkQuery::try_new(path.path_entry_hash()?, LinkTypes::AllDinos)?,
-        get_options.strategy,
+        get_options.strategy(),
     )?;
 
     let mut out = Vec::with_capacity(links.len());

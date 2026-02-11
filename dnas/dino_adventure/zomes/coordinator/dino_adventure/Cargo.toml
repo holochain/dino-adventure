@@ -13,3 +13,9 @@ serde = { workspace = true }
 holochain_serialized_bytes = { workspace = true }
 dino_adventure_integrity = { workspace = true }
 rand = { workspace = true }
+
+[dev-dependencies]
+holochain = { workspace = true, features = ["test_utils"] }
+holochain_client = { workspace = true }
+holochain_types = { workspace = true }
+tokio = { workspace = true }

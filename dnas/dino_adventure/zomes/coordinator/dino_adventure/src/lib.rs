@@ -6,7 +6,7 @@ mod dino;
 mod invite;
 mod nest;
 mod ping;
-mod types;
+pub mod types;
 
 // Called the first time a zome call is made to the cell containing this zome
 #[hdk_extern]
