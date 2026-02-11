@@ -1,5 +1,5 @@
 use crate::types::AuthoredAdventure;
-use dino_adventure_integrity::*;
+use dino_adventure_integrity::{Adventure, EntryTypes, LinkTypes};
 use hdk::prelude::*;
 
 #[hdk_extern]

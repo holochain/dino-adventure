@@ -2,7 +2,7 @@ use dino_adventure_integrity::{Adventure, Dino, Nest, NestBatch};
 use hdk::prelude::*;
 use std::collections::HashMap;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct AuthoredDino {
     pub dino: Dino,
     pub author: AgentPubKey,
@@ -32,7 +32,7 @@ impl TryFrom<Record> for AuthoredDino {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct AuthoredAdventure {
     pub adventure: Adventure,
     pub author: AgentPubKey,
@@ -64,7 +64,7 @@ impl TryFrom<Record> for AuthoredAdventure {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct AuthoredNestBatch {
     pub nest_batch: NestBatch,
     pub author: AgentPubKey,
@@ -98,7 +98,7 @@ impl TryFrom<(Record, ActionHash)> for AuthoredNestBatch {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct AuthoredNest {
     pub nest: Nest,
     pub author: AgentPubKey,
@@ -132,7 +132,7 @@ impl TryFrom<(Record, ActionHash)> for AuthoredNest {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
 pub struct NestBatchesWithNests {
     pub nest_batches: Vec<AuthoredNestBatch>,
     pub nests: HashMap<ActionHashB64, Vec<AuthoredNest>>,
