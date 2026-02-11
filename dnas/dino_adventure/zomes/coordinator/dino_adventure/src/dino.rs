@@ -1,5 +1,5 @@
 use crate::types::AuthoredDino;
-use dino_adventure_integrity::*;
+use dino_adventure_integrity::{Dino, EntryTypes, LinkTypes};
 use hdk::prelude::*;
 
 #[hdk_extern]

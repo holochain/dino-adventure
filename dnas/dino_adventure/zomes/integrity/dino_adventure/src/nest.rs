@@ -1,11 +1,11 @@
 use crate::Adventure;
 use hdi::prelude::*;
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Eq)]
 #[hdk_entry_helper]
 pub struct NestBatch;
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Eq)]
 #[hdk_entry_helper]
 pub struct Nest {
     pub payload: Vec<u8>,

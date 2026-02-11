@@ -1,6 +1,6 @@
 use hdi::prelude::*;
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "type")]
 pub enum DinoKind {
     Allosaurus,
@@ -20,7 +20,7 @@ pub enum DinoKind {
     Velociraptor,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Eq)]
 #[hdk_entry_helper]
 pub struct Dino {
     pub name: String,

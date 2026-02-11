@@ -1,6 +1,6 @@
 use hdi::prelude::*;
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Eq)]
 #[hdk_entry_helper]
 pub struct Adventure {
     pub participants: Vec<AgentPubKey>,
