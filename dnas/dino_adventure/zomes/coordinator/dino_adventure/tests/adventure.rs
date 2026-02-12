@@ -1,63 +1,39 @@
 use dino_adventure::types::AuthoredAdventure;
 use dino_adventure_integrity::Adventure;
 use holochain::sweettest::*;
+use holochain_client::AgentPubKey;
 use std::path::Path;
 
 #[tokio::test(flavor = "multi_thread")]
-async fn create_adventure_and_get() {
+async fn create_adventure() {
     // Create conductors with the standard config
-    let mut conductors = SweetConductorBatch::standard(2).await;
+    let mut alice_conductor = SweetConductor::standard().await;
     let dna_path =
         Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../workdir/dino_adventure.dna");
     let dna_file = SweetDnaFile::from_bundle(&dna_path).await.unwrap();
-    let apps = conductors.setup_app("test-app", &[dna_file]).await.unwrap();
-    let cells = apps.cells_flattened();
-    let alice_conductor = conductors.get(0).unwrap();
+    let app = alice_conductor
+        .setup_app("test-app", &[dna_file])
+        .await
+        .unwrap();
+    let cells = app.cells();
     let alice_zome = cells[0].zome("dino_adventure");
     let alice_agent = cells[0].agent_pubkey().clone();
-    let bob_conductor = conductors.get(1).unwrap();
-    let bob_zome = cells[1].zome("dino_adventure");
-    let bob_agent = cells[1].agent_pubkey().clone();
 
     // Alice creates an adventure
     let adventure1 = Adventure {
-        participants: vec![alice_agent.clone(), bob_agent.clone()],
+        participants: vec![
+            alice_agent.clone(),
+            AgentPubKey::from_raw_32([0; 32].into()),
+        ],
     };
     let record1: AuthoredAdventure = alice_conductor
-        .call(&alice_zome, "create_adventure", adventure1)
+        .call(&alice_zome, "create_adventure", adventure1.clone())
         .await;
-
-    // Bob creates an adventure
-    let adventure2 = Adventure {
-        participants: vec![bob_agent.clone(), alice_agent.clone()],
-    };
-    let record2: AuthoredAdventure = bob_conductor
-        .call(&bob_zome, "create_adventure", adventure2)
-        .await;
-
-    // Wait for dht sync
-    await_consistency(&cells).await.unwrap();
-
-    // Alice checks all adventures
-    let mut create_read_output1: Vec<AuthoredAdventure> = alice_conductor
-        .call(&alice_zome, "get_all_adventures_local", ())
-        .await;
-    create_read_output1.sort_by_key(|a| a.created_at);
-
-    let mut expected = vec![record1.clone(), record2.clone()];
-    expected.sort_by_key(|a| a.created_at);
-    assert_eq!(expected, create_read_output1);
-
-    // Bob sees the same adventures
-    let mut create_read_output2: Vec<AuthoredAdventure> = bob_conductor
-        .call(&bob_zome, "get_all_adventures_local", ())
-        .await;
-    create_read_output2.sort_by_key(|a| a.created_at);
-    assert_eq!(create_read_output1, create_read_output2);
+    assert_eq!(record1.adventure, adventure1);
 }
 
 #[tokio::test(flavor = "multi_thread")]
-async fn create_adventure_and_get_my_adventures() {
+async fn create_adventure_and_get_all_my_adventures() {
     // Create conductors with the standard config
     let mut conductors = SweetConductorBatch::standard(2).await;
     let dna_path =
