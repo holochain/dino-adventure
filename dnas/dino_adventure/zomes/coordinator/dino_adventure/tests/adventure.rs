@@ -57,7 +57,7 @@ async fn create_adventure_and_get() {
 }
 
 #[tokio::test(flavor = "multi_thread")]
-async fn my_adventures() {
+async fn create_adventure_and_get_my_adventures() {
     // Create conductors with the standard config
     let mut conductors = SweetConductorBatch::standard(2).await;
     let dna_path =
@@ -197,7 +197,7 @@ async fn end_my_adventure() {
 }
 
 #[tokio::test(flavor = "multi_thread")]
-async fn all_adventures() {
+async fn create_adventure_and_get_all_adventures_local() {
     // Create conductors with the standard config
     let mut conductors = SweetConductorBatch::standard(2).await;
     let dna_path =
