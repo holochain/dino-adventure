@@ -18,7 +18,8 @@ async fn create_dino() {
         name: "Dean O".to_string(),
         dino_kind: DinoKind::Apatosaurus,
     };
-    let _: AuthoredDino = conductor.call(&zome, "create_dino", dino).await;
+    let authored_dino: AuthoredDino = conductor.call(&zome, "create_dino", dino.clone()).await;
+    assert_eq!(authored_dino.dino, dino);
 }
 
 #[tokio::test(flavor = "multi_thread")]
