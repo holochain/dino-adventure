@@ -1,12 +1,15 @@
 use dino_adventure::types::AuthoredDino;
 use dino_adventure_integrity::{Dino, DinoKind};
 use holochain::sweettest::*;
+use holochain_trace::test_run;
 use std::path::Path;
 
 #[tokio::test(flavor = "multi_thread")]
 async fn create_dino() {
+    test_run();
+
     // Create a conductor with the standard config
-    let mut conductor = SweetConductor::standard().await;
+    let mut conductor = SweetConductor::from_standard_config().await;
     let dna_path =
         Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../workdir/dino_adventure.dna");
     let dna_file = SweetDnaFile::from_bundle(&dna_path).await.unwrap();
@@ -24,13 +27,17 @@ async fn create_dino() {
 
 #[tokio::test(flavor = "multi_thread")]
 async fn create_and_get_all_dinos() {
+    test_run();
+
     // Create conductors with the standard config
-    let mut conductors = SweetConductorBatch::standard(2).await;
+    let mut conductors = SweetConductorBatch::from_standard_config_rendezvous(2).await;
     let dna_path =
         Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../workdir/dino_adventure.dna");
     let dna_file = SweetDnaFile::from_bundle(&dna_path).await.unwrap();
     let apps = conductors.setup_app("test-app", &[dna_file]).await.unwrap();
     let cells = apps.cells_flattened();
+    conductors.exchange_peer_info().await;
+    await_consistency_s(120, &cells).await.unwrap();
     let alice_conductor = conductors.get(0).unwrap();
     let alice_zome = cells[0].zome("dino_adventure");
     let bob_conductor = conductors.get(1).unwrap();
@@ -56,7 +63,7 @@ async fn create_and_get_all_dinos() {
         .await;
 
     // Wait for dht sync
-    await_consistency(&cells).await.unwrap();
+    await_consistency_s(120, &cells).await.unwrap();
 
     // Bob gets the created Dinos
     let mut create_read_output: Vec<AuthoredDino> =

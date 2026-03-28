@@ -14,6 +14,7 @@ hdi = "=0.7.1-rc.2"
 hdk = "=0.6.1-rc.2"
 holochain_client = "0.8.1-rc.4"
 holochain_types = "0.6.1-rc.4"
+holochain_trace = "0.6.1-rc.0"
 holochain_serialized_bytes = "*"
 
 serde = "1.0"

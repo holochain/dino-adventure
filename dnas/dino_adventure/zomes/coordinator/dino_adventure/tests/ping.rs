@@ -2,6 +2,7 @@ use dino_adventure::Signal as DinoAdventureSignal;
 use holochain::prelude::*;
 use holochain::sweettest::*;
 use holochain_client::{AdminWebsocket, AppWebsocket, ClientAgentSigner};
+use holochain_trace::test_run;
 use holochain_types::websocket::AllowedOrigins;
 use std::net::Ipv4Addr;
 use std::path::Path;
@@ -11,13 +12,17 @@ use std::time::Duration;
 
 #[tokio::test(flavor = "multi_thread")]
 async fn send_ping() {
-    // Create conductors with the standard config
-    let mut conductors = SweetConductorBatch::standard(2).await;
+    test_run();
+
+    // Create conductors with rendezvous config for peer discovery (needed for remote signals)
+    let mut conductors = SweetConductorBatch::from_standard_config_rendezvous(2).await;
     let dna_path =
         Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../workdir/dino_adventure.dna");
     let dna_file = SweetDnaFile::from_bundle(&dna_path).await.unwrap();
     let apps = conductors.setup_app("test-app", &[dna_file]).await.unwrap();
     let cells = apps.cells_flattened();
+    conductors.exchange_peer_info().await;
+    await_consistency_s(120, &cells).await.unwrap();
     let alice_conductor = conductors.get(0).unwrap();
     let alice_zome = cells[0].zome("dino_adventure");
     let alice_cell_id = cells[0].cell_id().clone();

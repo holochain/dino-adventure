@@ -2,12 +2,15 @@ use dino_adventure::types::AuthoredAdventure;
 use dino_adventure_integrity::Adventure;
 use holochain::sweettest::*;
 use holochain_client::AgentPubKey;
+use holochain_trace::test_run;
 use std::path::Path;
 
 #[tokio::test(flavor = "multi_thread")]
 async fn create_adventure() {
+    test_run();
+
     // Create conductors with the standard config
-    let mut alice_conductor = SweetConductor::standard().await;
+    let mut alice_conductor = SweetConductor::from_standard_config().await;
     let dna_path =
         Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../workdir/dino_adventure.dna");
     let dna_file = SweetDnaFile::from_bundle(&dna_path).await.unwrap();
@@ -34,13 +37,17 @@ async fn create_adventure() {
 
 #[tokio::test(flavor = "multi_thread")]
 async fn create_adventure_and_get_all_my_adventures() {
+    test_run();
+
     // Create conductors with the standard config
-    let mut conductors = SweetConductorBatch::standard(2).await;
+    let mut conductors = SweetConductorBatch::from_standard_config_rendezvous(2).await;
     let dna_path =
         Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../workdir/dino_adventure.dna");
     let dna_file = SweetDnaFile::from_bundle(&dna_path).await.unwrap();
     let apps = conductors.setup_app("test-app", &[dna_file]).await.unwrap();
     let cells = apps.cells_flattened();
+    conductors.exchange_peer_info().await;
+    await_consistency_s(120, &cells).await.unwrap();
     let alice_conductor = conductors.get(0).unwrap();
     let alice_zome = cells[0].zome("dino_adventure");
     let alice_agent = cells[0].agent_pubkey().clone();
@@ -65,7 +72,7 @@ async fn create_adventure_and_get_all_my_adventures() {
         .await;
 
     // Wait for the dht sync
-    await_consistency(&cells).await.unwrap();
+    await_consistency_s(120, &cells).await.unwrap();
 
     // Alice checks her adventures
     let mut create_read_output1: Vec<AuthoredAdventure> = alice_conductor
@@ -84,13 +91,17 @@ async fn create_adventure_and_get_all_my_adventures() {
 
 #[tokio::test(flavor = "multi_thread")]
 async fn end_my_adventure() {
+    test_run();
+
     // Create conductors with the standard config
-    let mut conductors = SweetConductorBatch::standard(2).await;
+    let mut conductors = SweetConductorBatch::from_standard_config_rendezvous(2).await;
     let dna_path =
         Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../workdir/dino_adventure.dna");
     let dna_file = SweetDnaFile::from_bundle(&dna_path).await.unwrap();
     let apps = conductors.setup_app("test-app", &[dna_file]).await.unwrap();
     let cells = apps.cells_flattened();
+    conductors.exchange_peer_info().await;
+    await_consistency_s(120, &cells).await.unwrap();
     let alice_conductor = conductors.get(0).unwrap();
     let alice_zome = cells[0].zome("dino_adventure");
     let alice_agent = cells[0].agent_pubkey().clone();
@@ -123,7 +134,7 @@ async fn end_my_adventure() {
         .await;
 
     // Wait for the dht sync
-    await_consistency(&cells).await.unwrap();
+    await_consistency_s(120, &cells).await.unwrap();
 
     // Alice checks her adventures
     let mut create_read_output1: Vec<AuthoredAdventure> = alice_conductor
@@ -174,13 +185,17 @@ async fn end_my_adventure() {
 
 #[tokio::test(flavor = "multi_thread")]
 async fn create_adventure_and_get_all_adventures_local() {
+    test_run();
+
     // Create conductors with the standard config
-    let mut conductors = SweetConductorBatch::standard(2).await;
+    let mut conductors = SweetConductorBatch::from_standard_config_rendezvous(2).await;
     let dna_path =
         Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../workdir/dino_adventure.dna");
     let dna_file = SweetDnaFile::from_bundle(&dna_path).await.unwrap();
     let apps = conductors.setup_app("test-app", &[dna_file]).await.unwrap();
     let cells = apps.cells_flattened();
+    conductors.exchange_peer_info().await;
+    await_consistency_s(120, &cells).await.unwrap();
     let alice_conductor = conductors.get(0).unwrap();
     let alice_zome = cells[0].zome("dino_adventure");
     let alice_agent = cells[0].agent_pubkey().clone();
@@ -205,7 +220,7 @@ async fn create_adventure_and_get_all_adventures_local() {
         .await;
 
     // Wait for dht sync
-    await_consistency(&cells).await.unwrap();
+    await_consistency_s(120, &cells).await.unwrap();
 
     // Alice gets all adventures
     let mut all_adventures1: Vec<AuthoredAdventure> = alice_conductor
