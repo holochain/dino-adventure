@@ -9,11 +9,11 @@ members = ["dnas/*/zomes/coordinator/*", "dnas/*/zomes/integrity/*"]
 resolver = "2"
 
 [workspace.dependencies]
-holochain = { version = "0.7.0-dev.11", default-features = false, features = ["sqlite-encrypted", "wasmer_sys", "transport-iroh"] }
-hdi = "=0.8.0-dev.4"
-hdk = "=0.7.0-dev.6"
-holochain_client = "0.9.0-dev.10"
-holochain_types = "0.7.0-dev.10"
+holochain = { version = "0.7.0-dev.21", default-features = false, features = ["sqlite-encrypted", "wasmer_sys", "transport-iroh"] }
+hdi = "=0.8.0-dev.10"
+hdk = "=0.7.0-dev.13"
+holochain_client = "0.9.0-dev.21"
+holochain_types = "0.7.0-dev.20"
 holochain_serialized_bytes = "*"
 
 serde = "1"
@@ -25,3 +25,10 @@ path = "dnas/dino_adventure/zomes/coordinator/dino_adventure"
 
 [workspace.dependencies.dino_adventure_integrity]
 path = "dnas/dino_adventure/zomes/integrity/dino_adventure"
+
+[patch.crates-io]
+hdi = { git = "https://github.com/holochain/holochain", branch = "fix/491-stabilize-the-iroh-relay-hosted-in-bootstrap_srv" }
+hdk = { git = "https://github.com/holochain/holochain", branch = "fix/491-stabilize-the-iroh-relay-hosted-in-bootstrap_srv" }
+holochain = { git = "https://github.com/holochain/holochain", branch = "fix/491-stabilize-the-iroh-relay-hosted-in-bootstrap_srv" }
+holochain_client = { git = "https://github.com/holochain/holochain", branch = "fix/491-stabilize-the-iroh-relay-hosted-in-bootstrap_srv" }
+holochain_types = { git = "https://github.com/holochain/holochain", branch = "fix/491-stabilize-the-iroh-relay-hosted-in-bootstrap_srv" }

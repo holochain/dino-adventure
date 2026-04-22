@@ -3,6 +3,7 @@
 
   inputs = {
     holonix.url = "github:holochain/holonix?ref=main";
+    holonix.inputs.holochain.url = "github:holochain/holochain?ref=fix/491-stabilize-the-iroh-relay-hosted-in-bootstrap_srv";
 
     nixpkgs.follows = "holonix/nixpkgs";
     flake-parts.follows = "holonix/flake-parts";
