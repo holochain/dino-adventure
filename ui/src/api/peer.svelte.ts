@@ -68,7 +68,12 @@ export const getFetchQueueCount = () => fetchQueueCountState;
 
 const updateNetworkStats = () => {
   runOnClient(async (client): Promise<TransportStats> => {
-    return await client.dumpNetworkStats(1000);
+    // Branch `fix/491-...` wraps response as `ApiTransportStats`
+    // ({ transport_stats, blocked_message_counts }). Client types still flat.
+    const res = (await client.dumpNetworkStats(1000)) as unknown as
+      | TransportStats
+      | { transport_stats: TransportStats };
+    return "transport_stats" in res ? res.transport_stats : res;
   })
     .then((stats) => {
       networkStatsState = stats;
