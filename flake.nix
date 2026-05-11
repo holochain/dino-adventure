@@ -19,6 +19,7 @@
         packages = (with pkgs; [
           nodejs_24
           binaryen
+          perl
         ]);
 
         ELECTRON_BINARY = "${pkgs.electron}/bin/electron";
