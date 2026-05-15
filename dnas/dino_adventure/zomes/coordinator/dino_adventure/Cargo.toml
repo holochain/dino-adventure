@@ -20,3 +20,5 @@ holochain_client = { workspace = true }
 holochain_types = { workspace = true }
 holochain_trace = { workspace = true }
 tokio = { workspace = true }
+
+pkcs8 = "=0.11.0-rc.11"

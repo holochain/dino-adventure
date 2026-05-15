@@ -1,4 +1,4 @@
-import type { AdventureInvite, AdventureInviteAcceptance } from "../types";
+import type { AdventureInviteAcceptance } from "../types";
 import { runOnClient, signalHandler } from "./common.svelte";
 import {
   type AgentPubKey,
@@ -82,7 +82,7 @@ export const sendInvite = async (invite: {
         fn_name: "send_invite",
         payload: {
           to: invite.to,
-        } as AdventureInvite,
+        },
       });
 
       sentInvites = [...sentInvites, invite];
