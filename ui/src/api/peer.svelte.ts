@@ -5,13 +5,16 @@ import {
   encodeHashToBase64,
   type PeerMetaInfoResponse,
   type PeerMetaInfo,
-  type TransportStats,
+  type ApiTransportStats,
 } from "@holochain/client";
 
-let networkStatsState = $state<TransportStats>({
-  backend: "",
-  connections: [],
-  peer_urls: [],
+let networkStatsState = $state<ApiTransportStats>({
+  transport_stats: {
+    backend: "",
+    peer_urls: [],
+    connections: []
+  },
+  blocked_message_counts: {},
 });
 
 export const getNetworkStats = () => networkStatsState;
@@ -47,8 +50,8 @@ export interface PeerConnections {
 }
 
 const peerConnectionsState = $derived<PeerConnections>({
-  connectedPeers: networkStatsState.connections.length,
-  directConnectedPeers: networkStatsState.connections.filter((c) => c.is_direct)
+  connectedPeers: networkStatsState.transport_stats.connections.length,
+  directConnectedPeers: networkStatsState.transport_stats.connections.filter((c) => c.is_direct)
     .length,
 });
 
@@ -67,7 +70,7 @@ export const getPeerConnectionsState = () => peerConnectionsState;
 export const getFetchQueueCount = () => fetchQueueCountState;
 
 const updateNetworkStats = () => {
-  runOnClient(async (client): Promise<TransportStats> => {
+  runOnClient(async (client): Promise<ApiTransportStats> => {
     return await client.dumpNetworkStats(1000);
   })
     .then((stats) => {
@@ -121,7 +124,7 @@ const updatePeerMetaState = () => {
         return JSON.parse(outer) as { url?: string };
       });
 
-      for (const connStats of networkStatsState.connections) {
+      for (const connStats of networkStatsState.transport_stats.connections) {
         const matchedInfo = decodedInfos.find((info) =>
           info.url?.includes(connStats.pub_key),
         );
