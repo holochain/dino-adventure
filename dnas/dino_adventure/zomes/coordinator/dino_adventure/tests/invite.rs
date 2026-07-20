@@ -21,12 +21,15 @@ pub struct AdventureInviteAcceptance {
 
 #[tokio::test(flavor = "multi_thread")]
 async fn invite_and_accept() {
+    holochain_trace::test_run();
+
     // Create conductors with the standard config
     let mut conductors = SweetConductorBatch::standard(2).await;
     let dna_path =
         Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../workdir/dino_adventure.dna");
     let dna_file = SweetDnaFile::from_bundle(&dna_path).await.unwrap();
     let apps = conductors.setup_app("test-app", &[dna_file]).await.unwrap();
+    conductors.exchange_peer_info().await;
     let cells = apps.cells_flattened();
     let alice_conductor = conductors.get(0).unwrap();
     let alice_zome = cells[0].zome("dino_adventure");

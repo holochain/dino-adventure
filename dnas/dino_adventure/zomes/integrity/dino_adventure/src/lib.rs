@@ -67,56 +67,46 @@ pub fn validate_agent_joining(
 #[hdk_extern]
 pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
     match op.flattened::<EntryTypes, LinkTypes>()? {
-        FlatOp::StoreEntry(store_entry) => match store_entry {
+        FlatOp::CreateEntry(create_entry) => match create_entry {
             OpEntry::CreateEntry { app_entry, action } => match app_entry {
-                EntryTypes::Dino(dino) => {
-                    validate_create_dino(EntryCreationAction::Create(action), dino)
-                }
-                EntryTypes::Adventure(adventure) => {
-                    validate_create_adventure(EntryCreationAction::Create(action), adventure)
-                }
-                EntryTypes::NestBatch(nest_batch) => {
-                    validate_create_nest_batch(EntryCreationAction::Create(action), nest_batch)
-                }
-                EntryTypes::Nest(nest) => {
-                    validate_create_nest(EntryCreationAction::Create(action), nest)
-                }
+                EntryTypes::Dino(dino) => validate_create_dino(action, dino),
+                EntryTypes::Adventure(adventure) => validate_create_adventure(action, adventure),
+                EntryTypes::NestBatch(nest_batch) => validate_create_nest_batch(action, nest_batch),
+                EntryTypes::Nest(nest) => validate_create_nest(action, nest),
             },
             OpEntry::UpdateEntry {
                 app_entry, action, ..
             } => match app_entry {
-                EntryTypes::Dino(dino) => {
-                    validate_create_dino(EntryCreationAction::Update(action), dino)
-                }
-                EntryTypes::Adventure(adventure) => {
-                    validate_create_adventure(EntryCreationAction::Update(action), adventure)
-                }
-                EntryTypes::NestBatch(nest_batch) => {
-                    validate_create_nest_batch(EntryCreationAction::Update(action), nest_batch)
-                }
-                EntryTypes::Nest(nest) => {
-                    validate_create_nest(EntryCreationAction::Update(action), nest)
-                }
+                EntryTypes::Dino(dino) => validate_create_dino(action, dino),
+                EntryTypes::Adventure(adventure) => validate_create_adventure(action, adventure),
+                EntryTypes::NestBatch(nest_batch) => validate_create_nest_batch(action, nest_batch),
+                EntryTypes::Nest(nest) => validate_create_nest(action, nest),
             },
             _ => Ok(ValidateCallbackResult::Valid),
         },
-        FlatOp::RegisterUpdate(update_entry) => match update_entry {
+        FlatOp::Update(update_entry) => match update_entry {
             OpUpdate::Entry { app_entry, action } => {
-                let original_action = must_get_action(action.clone().original_action_address)?
+                let update = match &action.data {
+                    ActionData::Update(update) => update,
+                    _ => unreachable!(),
+                };
+
+                let original_action = must_get_action(update.original_action_address.clone())?
                     .action()
                     .to_owned();
-                let original_create_action = match EntryCreationAction::try_from(original_action) {
-                    Ok(action) => action,
-                    Err(e) => {
+                let original_create_action = match &original_action.data {
+                    ActionData::Create(_) => original_action,
+                    ActionData::Update(_) => original_action,
+                    _ => {
                         return Ok(ValidateCallbackResult::Invalid(format!(
-                            "Expected to get EntryCreationAction from Action: {e:?}"
+                            "Expected to get create/update action: {original_action:?}"
                         )));
                     }
                 };
                 match app_entry {
                     EntryTypes::Dino(dino) => {
                         let original_app_entry =
-                            must_get_valid_record(action.clone().original_action_address)?;
+                            must_get_valid_record(update.original_action_address.clone())?;
                         let original_dino = match Dino::try_from(original_app_entry) {
                             Ok(entry) => entry,
                             Err(e) => {
@@ -125,11 +115,16 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                                 )));
                             }
                         };
-                        validate_update_dino(action, dino, original_create_action, original_dino)
+                        validate_update_dino(
+                            update.clone(),
+                            dino,
+                            original_create_action,
+                            original_dino,
+                        )
                     }
                     EntryTypes::Adventure(adventure) => {
                         let original_app_entry =
-                            must_get_valid_record(action.clone().original_action_address)?;
+                            must_get_valid_record(update.original_action_address.clone())?;
                         let original_adventure = match Adventure::try_from(original_app_entry) {
                             Ok(entry) => entry,
                             Err(e) => {
@@ -139,7 +134,7 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                             }
                         };
                         validate_update_adventure(
-                            action,
+                            update.clone(),
                             adventure,
                             original_create_action,
                             original_adventure,
@@ -147,7 +142,7 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                     }
                     EntryTypes::NestBatch(nest_batch) => {
                         let original_app_entry =
-                            must_get_valid_record(action.clone().original_action_address)?;
+                            must_get_valid_record(update.original_action_address.clone())?;
                         let original_nest_batch = match NestBatch::try_from(original_app_entry) {
                             Ok(entry) => entry,
                             Err(e) => {
@@ -157,7 +152,7 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                             }
                         };
                         validate_update_nest_batch(
-                            action,
+                            update.clone(),
                             nest_batch,
                             original_create_action,
                             original_nest_batch,
@@ -165,7 +160,7 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                     }
                     EntryTypes::Nest(nest) => {
                         let original_app_entry =
-                            must_get_valid_record(action.clone().original_action_address)?;
+                            must_get_valid_record(update.original_action_address.clone())?;
                         let original_nest = match Nest::try_from(original_app_entry) {
                             Ok(entry) => entry,
                             Err(e) => {
@@ -174,26 +169,42 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                                 )));
                             }
                         };
-                        validate_update_nest(action, nest, original_create_action, original_nest)
+                        validate_update_nest(
+                            update.clone(),
+                            nest,
+                            original_create_action,
+                            original_nest,
+                        )
                     }
                 }
             }
             _ => Ok(ValidateCallbackResult::Valid),
         },
-        FlatOp::RegisterDelete(delete_entry) => {
-            let original_action_hash = delete_entry.clone().action.deletes_address;
+        FlatOp::Delete(delete_entry) => {
+            let delete = match &delete_entry.action.data {
+                ActionData::Delete(delete) => delete,
+                _ => {
+                    return Ok(ValidateCallbackResult::Invalid(format!(
+                        "Expected to get delete action: {:?}",
+                        delete_entry.action
+                    )));
+                }
+            };
+
+            let original_action_hash = delete.deletes_address.clone();
             let original_record = must_get_valid_record(original_action_hash)?;
             let original_record_action = original_record.action().clone();
-            let original_action = match EntryCreationAction::try_from(original_record_action) {
-                Ok(action) => action,
-                Err(e) => {
+            let original_action = match &original_record_action.data {
+                ActionData::Create(_) => original_record_action,
+                ActionData::Update(_) => original_record_action,
+                _ => {
                     return Ok(ValidateCallbackResult::Invalid(format!(
-                        "Expected to get EntryCreationAction from Action: {e:?}"
+                        "Expected to get create/update action: {original_record_action:?}"
                     )));
                 }
             };
             let app_entry_type = match original_action.entry_type() {
-                EntryType::App(app_entry_type) => app_entry_type,
+                Some(EntryType::App(app_entry_type)) => app_entry_type,
                 _ => {
                     return Ok(ValidateCallbackResult::Valid);
                 }
@@ -220,113 +231,149 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                 }
             };
             match original_app_entry {
-                EntryTypes::Dino(original_dino) => validate_delete_dino(
-                    delete_entry.clone().action,
-                    original_action,
-                    original_dino,
-                ),
-                EntryTypes::Adventure(original_adventure) => validate_delete_adventure(
-                    delete_entry.clone().action,
-                    original_action,
-                    original_adventure,
-                ),
-                EntryTypes::NestBatch(original_nest_batch) => validate_delete_nest_batch(
-                    delete_entry.clone().action,
-                    original_action,
-                    original_nest_batch,
-                ),
-                EntryTypes::Nest(original_nest) => validate_delete_nest(
-                    delete_entry.clone().action,
-                    original_action,
-                    original_nest,
-                ),
+                EntryTypes::Dino(original_dino) => {
+                    validate_delete_dino(delete.clone(), original_action, original_dino)
+                }
+                EntryTypes::Adventure(original_adventure) => {
+                    validate_delete_adventure(delete.clone(), original_action, original_adventure)
+                }
+                EntryTypes::NestBatch(original_nest_batch) => {
+                    validate_delete_nest_batch(delete.clone(), original_action, original_nest_batch)
+                }
+                EntryTypes::Nest(original_nest) => {
+                    validate_delete_nest(delete.clone(), original_action, original_nest)
+                }
             }
         }
-        FlatOp::RegisterCreateLink {
+        FlatOp::Link(OpLink::CreateLink {
             link_type,
             base_address,
             target_address,
             tag,
             action,
-        } => match link_type {
-            LinkTypes::AllDinos => {
-                validate_create_link_all_dinos(action, base_address, target_address, tag)
+        }) => {
+            let create_link = match &action.data {
+                ActionData::CreateLink(create_link) => create_link.clone(),
+                _ => {
+                    return Ok(ValidateCallbackResult::Invalid(format!(
+                        "Expected a create link action: {action:?}"
+                    )));
+                }
+            };
+
+            match link_type {
+                LinkTypes::AllDinos => {
+                    validate_create_link_all_dinos(create_link, base_address, target_address, tag)
+                }
+                LinkTypes::AllAdventures => validate_create_link_all_adventures(
+                    create_link,
+                    base_address,
+                    target_address,
+                    tag,
+                ),
+                LinkTypes::MyAdventures => validate_create_link_my_adventures(
+                    action.header,
+                    create_link,
+                    base_address,
+                    target_address,
+                    tag,
+                ),
+                LinkTypes::AdventureNestBatches => validate_create_link_adventure_nest_batch(
+                    action.header,
+                    create_link,
+                    base_address,
+                    target_address,
+                    tag,
+                ),
+                LinkTypes::NestBatchNests => validate_create_link_nest_batch_nest(
+                    action.header,
+                    create_link,
+                    base_address,
+                    target_address,
+                    tag,
+                ),
             }
-            LinkTypes::AllAdventures => {
-                validate_create_link_all_adventures(action, base_address, target_address, tag)
-            }
-            LinkTypes::MyAdventures => {
-                validate_create_link_my_adventures(action, base_address, target_address, tag)
-            }
-            LinkTypes::AdventureNestBatches => {
-                validate_create_link_adventure_nest_batch(action, base_address, target_address, tag)
-            }
-            LinkTypes::NestBatchNests => {
-                validate_create_link_nest_batch_nest(action, base_address, target_address, tag)
-            }
-        },
-        FlatOp::RegisterDeleteLink {
+        }
+        FlatOp::Link(OpLink::DeleteLink {
             link_type,
             base_address,
             target_address,
             tag,
             original_action,
             action,
-        } => match link_type {
-            LinkTypes::AllDinos => validate_delete_link_all_dinos(
-                action,
-                original_action,
-                base_address,
-                target_address,
-                tag,
-            ),
-            LinkTypes::AllAdventures => validate_delete_link_all_adventures(
-                action,
-                original_action,
-                base_address,
-                target_address,
-                tag,
-            ),
-            LinkTypes::MyAdventures => validate_delete_link_my_adventures(
-                action,
-                original_action,
-                base_address,
-                target_address,
-                tag,
-            ),
-            LinkTypes::AdventureNestBatches => validate_delete_link_adventure_nest_batch(
-                action,
-                original_action,
-                base_address,
-                target_address,
-                tag,
-            ),
-            LinkTypes::NestBatchNests => validate_delete_link_nest_batch_nest(
-                action,
-                original_action,
-                base_address,
-                target_address,
-                tag,
-            ),
-        },
-        FlatOp::StoreRecord(store_record) => {
+        }) => {
+            let delete_link = match &action.data {
+                ActionData::DeleteLink(delete_link) => delete_link.clone(),
+                _ => {
+                    return Ok(ValidateCallbackResult::Invalid(format!(
+                        "Expected delete link action: {action:?}"
+                    )));
+                }
+            };
+
+            let create_link = match &original_action.data {
+                ActionData::CreateLink(create_link) => create_link.clone(),
+                _ => {
+                    return Ok(ValidateCallbackResult::Invalid(format!(
+                        "Expected previous action to be a create link action {original_action:?}"
+                    )));
+                }
+            };
+
+            match link_type {
+                LinkTypes::AllDinos => validate_delete_link_all_dinos(
+                    delete_link,
+                    create_link,
+                    base_address,
+                    target_address,
+                    tag,
+                ),
+                LinkTypes::AllAdventures => validate_delete_link_all_adventures(
+                    delete_link,
+                    create_link,
+                    base_address,
+                    target_address,
+                    tag,
+                ),
+                LinkTypes::MyAdventures => validate_delete_link_my_adventures(
+                    action.header,
+                    delete_link,
+                    original_action.header,
+                    create_link,
+                    base_address,
+                    target_address,
+                    tag,
+                ),
+                LinkTypes::AdventureNestBatches => validate_delete_link_adventure_nest_batch(
+                    delete_link,
+                    create_link,
+                    base_address,
+                    target_address,
+                    tag,
+                ),
+                LinkTypes::NestBatchNests => validate_delete_link_nest_batch_nest(
+                    delete_link,
+                    create_link,
+                    base_address,
+                    target_address,
+                    tag,
+                ),
+            }
+        }
+        FlatOp::CreateRecord(store_record) => {
             match store_record {
                 // Complementary validation to the `StoreEntry` Op, in which the record itself is validated
                 // If you want to optimize performance, you can remove the validation for an entry type here and keep it in `StoreEntry`
                 // Notice that doing so will cause `must_get_valid_record` for this record to return a valid record even if the `StoreEntry` validation failed
                 OpRecord::CreateEntry { app_entry, action } => match app_entry {
-                    EntryTypes::Dino(dino) => {
-                        validate_create_dino(EntryCreationAction::Create(action), dino)
-                    }
+                    EntryTypes::Dino(dino) => validate_create_dino(action, dino),
                     EntryTypes::Adventure(adventure) => {
-                        validate_create_adventure(EntryCreationAction::Create(action), adventure)
+                        validate_create_adventure(action, adventure)
                     }
                     EntryTypes::NestBatch(nest_batch) => {
-                        validate_create_nest_batch(EntryCreationAction::Create(action), nest_batch)
+                        validate_create_nest_batch(action, nest_batch)
                     }
-                    EntryTypes::Nest(nest) => {
-                        validate_create_nest(EntryCreationAction::Create(action), nest)
-                    }
+                    EntryTypes::Nest(nest) => validate_create_nest(action, nest),
                 },
                 // Complementary validation to the `RegisterUpdate` Op, in which the record itself is validated
                 // If you want to optimize performance, you can remove the validation for an entry type here and keep it in `StoreEntry` and in `RegisterUpdate`
@@ -337,11 +384,20 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                     action,
                     ..
                 } => {
+                    let update_data = match &action.data {
+                        ActionData::Update(update_data) => update_data,
+                        _ => {
+                            return Ok(ValidateCallbackResult::Invalid(format!(
+                                "Expected an update action: {action:?}"
+                            )))
+                        }
+                    };
+
                     let original_record = must_get_valid_record(original_action_hash)?;
                     let original_action = original_record.action().clone();
-                    let original_action = match original_action {
-                        Action::Create(create) => EntryCreationAction::Create(create),
-                        Action::Update(update) => EntryCreationAction::Update(update),
+                    let original_action = match &original_action.data {
+                        ActionData::Create(_) => original_action,
+                        ActionData::Update(_) => original_action,
                         _ => {
                             return Ok(ValidateCallbackResult::Invalid(
                                 "Original action for an update must be a Create or Update action"
@@ -351,10 +407,7 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                     };
                     match app_entry {
                         EntryTypes::Dino(dino) => {
-                            let result = validate_create_dino(
-                                EntryCreationAction::Update(action.clone()),
-                                dino.clone(),
-                            )?;
+                            let result = validate_create_dino(action.clone(), dino.clone())?;
                             if let ValidateCallbackResult::Valid = result {
                                 let original_dino: Option<Dino> = original_record
                                     .entry()
@@ -371,16 +424,19 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                                         );
                                     }
                                 };
-                                validate_update_dino(action, dino, original_action, original_dino)
+                                validate_update_dino(
+                                    update_data.clone(),
+                                    dino,
+                                    original_action,
+                                    original_dino,
+                                )
                             } else {
                                 Ok(result)
                             }
                         }
                         EntryTypes::Adventure(adventure) => {
-                            let result = validate_create_adventure(
-                                EntryCreationAction::Update(action.clone()),
-                                adventure.clone(),
-                            )?;
+                            let result =
+                                validate_create_adventure(action.clone(), adventure.clone())?;
                             if let ValidateCallbackResult::Valid = result {
                                 let original_adventure: Option<Adventure> = original_record
                                     .entry()
@@ -398,7 +454,7 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                                     }
                                 };
                                 validate_update_adventure(
-                                    action,
+                                    update_data.clone(),
                                     adventure,
                                     original_action,
                                     original_adventure,
@@ -408,10 +464,8 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                             }
                         }
                         EntryTypes::NestBatch(nest_batch) => {
-                            let result = validate_create_nest_batch(
-                                EntryCreationAction::Update(action.clone()),
-                                nest_batch.clone(),
-                            )?;
+                            let result =
+                                validate_create_nest_batch(action.clone(), nest_batch.clone())?;
                             if let ValidateCallbackResult::Valid = result {
                                 let original_nest_batch: Option<NestBatch> = original_record
                                     .entry()
@@ -429,7 +483,7 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                                     }
                                 };
                                 validate_update_nest_batch(
-                                    action,
+                                    update_data.clone(),
                                     nest_batch,
                                     original_action,
                                     original_nest_batch,
@@ -439,10 +493,7 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                             }
                         }
                         EntryTypes::Nest(nest) => {
-                            let result = validate_create_nest(
-                                EntryCreationAction::Update(action.clone()),
-                                nest.clone(),
-                            )?;
+                            let result = validate_create_nest(action.clone(), nest.clone())?;
                             if let ValidateCallbackResult::Valid = result {
                                 let original_nest: Option<Nest> = original_record
                                     .entry()
@@ -459,7 +510,12 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                                         );
                                     }
                                 };
-                                validate_update_nest(action, nest, original_action, original_nest)
+                                validate_update_nest(
+                                    update_data.clone(),
+                                    nest,
+                                    original_action,
+                                    original_nest,
+                                )
                             } else {
                                 Ok(result)
                             }
@@ -474,11 +530,20 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                     action,
                     ..
                 } => {
+                    let delete_data = match &action.data {
+                        ActionData::Delete(delete_data) => delete_data,
+                        _ => {
+                            return Ok(ValidateCallbackResult::Invalid(format!(
+                                "Expected a delete action: {action:?}"
+                            )))
+                        }
+                    };
+
                     let original_record = must_get_valid_record(original_action_hash)?;
                     let original_action = original_record.action().clone();
-                    let original_action = match original_action {
-                        Action::Create(create) => EntryCreationAction::Create(create),
-                        Action::Update(update) => EntryCreationAction::Update(update),
+                    let original_action = match &original_action.data {
+                        ActionData::Create(_) => original_action,
+                        ActionData::Update(_) => original_action,
                         _ => {
                             return Ok(ValidateCallbackResult::Invalid(
                                 "Original action for a delete must be a Create or Update action"
@@ -487,7 +552,7 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                         }
                     };
                     let app_entry_type = match original_action.entry_type() {
-                        EntryType::App(app_entry_type) => app_entry_type,
+                        Some(EntryType::App(app_entry_type)) => app_entry_type,
                         _ => {
                             return Ok(ValidateCallbackResult::Valid);
                         }
@@ -516,18 +581,26 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                         }
                     };
                     match original_app_entry {
-                        EntryTypes::Dino(original_dino) => {
-                            validate_delete_dino(action, original_action, original_dino)
-                        }
-                        EntryTypes::Adventure(original_adventure) => {
-                            validate_delete_adventure(action, original_action, original_adventure)
-                        }
-                        EntryTypes::NestBatch(original_nest_batch) => {
-                            validate_delete_nest_batch(action, original_action, original_nest_batch)
-                        }
-                        EntryTypes::Nest(original_nest) => {
-                            validate_delete_nest(action, original_action, original_nest)
-                        }
+                        EntryTypes::Dino(original_dino) => validate_delete_dino(
+                            delete_data.clone(),
+                            original_action,
+                            original_dino,
+                        ),
+                        EntryTypes::Adventure(original_adventure) => validate_delete_adventure(
+                            delete_data.clone(),
+                            original_action,
+                            original_adventure,
+                        ),
+                        EntryTypes::NestBatch(original_nest_batch) => validate_delete_nest_batch(
+                            delete_data.clone(),
+                            original_action,
+                            original_nest_batch,
+                        ),
+                        EntryTypes::Nest(original_nest) => validate_delete_nest(
+                            delete_data.clone(),
+                            original_action,
+                            original_nest,
+                        ),
                     }
                 }
                 // Complementary validation to the `RegisterCreateLink` Op, in which the record itself is validated
@@ -539,35 +612,54 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                     tag,
                     link_type,
                     action,
-                } => match link_type {
-                    LinkTypes::AllDinos => {
-                        validate_create_link_all_dinos(action, base_address, target_address, tag)
+                } => {
+                    let create_link = match &action.data {
+                        ActionData::CreateLink(create_link) => create_link,
+                        _ => {
+                            return Ok(ValidateCallbackResult::Invalid(format!(
+                                "Expected a create link action {action:?}"
+                            )))
+                        }
+                    };
+
+                    match link_type {
+                        LinkTypes::AllDinos => validate_create_link_all_dinos(
+                            create_link.clone(),
+                            base_address,
+                            target_address,
+                            tag,
+                        ),
+                        LinkTypes::AllAdventures => validate_create_link_all_adventures(
+                            create_link.clone(),
+                            base_address,
+                            target_address,
+                            tag,
+                        ),
+                        LinkTypes::MyAdventures => validate_create_link_my_adventures(
+                            action.header,
+                            create_link.clone(),
+                            base_address,
+                            target_address,
+                            tag,
+                        ),
+                        LinkTypes::AdventureNestBatches => {
+                            validate_create_link_adventure_nest_batch(
+                                action.header,
+                                create_link.clone(),
+                                base_address,
+                                target_address,
+                                tag,
+                            )
+                        }
+                        LinkTypes::NestBatchNests => validate_create_link_nest_batch_nest(
+                            action.header,
+                            create_link.clone(),
+                            base_address,
+                            target_address,
+                            tag,
+                        ),
                     }
-                    LinkTypes::AllAdventures => validate_create_link_all_adventures(
-                        action,
-                        base_address,
-                        target_address,
-                        tag,
-                    ),
-                    LinkTypes::MyAdventures => validate_create_link_my_adventures(
-                        action,
-                        base_address,
-                        target_address,
-                        tag,
-                    ),
-                    LinkTypes::AdventureNestBatches => validate_create_link_adventure_nest_batch(
-                        action,
-                        base_address,
-                        target_address,
-                        tag,
-                    ),
-                    LinkTypes::NestBatchNests => validate_create_link_nest_batch_nest(
-                        action,
-                        base_address,
-                        target_address,
-                        tag,
-                    ),
-                },
+                }
                 // Complementary validation to the `RegisterDeleteLink` Op, in which the record itself is validated
                 // If you want to optimize performance, you can remove the validation for an entry type here and keep it in `RegisterDeleteLink`
                 // Notice that doing so will cause `must_get_valid_record` for this record to return a valid record even if the `RegisterDeleteLink` validation failed
@@ -576,9 +668,18 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                     base_address,
                     action,
                 } => {
+                    let delete_link = match &action.data {
+                        ActionData::DeleteLink(delete_link) => delete_link.clone(),
+                        _ => {
+                            return Ok(ValidateCallbackResult::Invalid(format!(
+                                "Expected a delete link action: {action:?}"
+                            )))
+                        }
+                    };
+
                     let record = must_get_valid_record(original_action_hash)?;
-                    let create_link = match record.action() {
-                        Action::CreateLink(create_link) => create_link.clone(),
+                    let create_link = match &record.action().data {
+                        ActionData::CreateLink(create_link) => create_link.clone(),
                         _ => {
                             return Ok(ValidateCallbackResult::Invalid(
                                 "The action that a DeleteLink deletes must be a CreateLink"
@@ -597,21 +698,23 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                     };
                     match link_type {
                         LinkTypes::AllDinos => validate_delete_link_all_dinos(
-                            action,
+                            delete_link,
                             create_link.clone(),
                             base_address,
                             create_link.target_address,
                             create_link.tag,
                         ),
                         LinkTypes::AllAdventures => validate_delete_link_all_adventures(
-                            action,
+                            delete_link,
                             create_link.clone(),
                             base_address,
                             create_link.target_address,
                             create_link.tag,
                         ),
                         LinkTypes::MyAdventures => validate_delete_link_my_adventures(
-                            action,
+                            action.header,
+                            delete_link,
+                            record.action().header.clone(),
                             create_link.clone(),
                             base_address,
                             create_link.target_address,
@@ -619,7 +722,7 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                         ),
                         LinkTypes::AdventureNestBatches => {
                             validate_delete_link_adventure_nest_batch(
-                                action,
+                                delete_link,
                                 create_link.clone(),
                                 base_address,
                                 create_link.target_address,
@@ -627,7 +730,7 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                             )
                         }
                         LinkTypes::NestBatchNests => validate_delete_link_nest_batch_nest(
-                            action,
+                            delete_link,
                             create_link.clone(),
                             base_address,
                             create_link.target_address,
@@ -648,12 +751,19 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                 _ => Ok(ValidateCallbackResult::Valid),
             }
         }
-        FlatOp::RegisterAgentActivity(agent_activity) => match agent_activity {
+        FlatOp::AgentActivity(agent_activity) => match agent_activity {
             OpActivity::CreateAgent { agent, action } => {
-                let previous_action = must_get_action(action.prev_action)?;
-                match previous_action.action() {
-                        Action::AgentValidationPkg(
-                            AgentValidationPkg { membrane_proof, .. },
+                let prev = action
+                    .prev_action()
+                    .ok_or_else(|| {
+                        wasm_error!(WasmErrorInner::Guest("expected a prior action".into()))
+                    })?
+                    .clone();
+
+                let previous_action = must_get_action(prev)?;
+                match &previous_action.action().data {
+                        ActionData::AgentValidationPkg(
+                            AgentValidationPkgData { membrane_proof, .. },
                         ) => validate_agent_joining(agent, membrane_proof),
                         _ => {
                             Ok(

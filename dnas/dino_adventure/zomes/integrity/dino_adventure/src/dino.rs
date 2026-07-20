@@ -27,18 +27,15 @@ pub struct Dino {
     pub dino_kind: DinoKind,
 }
 
-pub fn validate_create_dino(
-    _action: EntryCreationAction,
-    _dino: Dino,
-) -> ExternResult<ValidateCallbackResult> {
+pub fn validate_create_dino(_action: Action, _dino: Dino) -> ExternResult<ValidateCallbackResult> {
     // TODO: add the appropriate validation rules
     Ok(ValidateCallbackResult::Valid)
 }
 
 pub fn validate_update_dino(
-    _action: Update,
+    _action: UpdateData,
     _dino: Dino,
-    _original_action: EntryCreationAction,
+    _original_action: Action,
     _original_dino: Dino,
 ) -> ExternResult<ValidateCallbackResult> {
     Ok(ValidateCallbackResult::Invalid(
@@ -47,8 +44,8 @@ pub fn validate_update_dino(
 }
 
 pub fn validate_delete_dino(
-    _action: Delete,
-    _original_action: EntryCreationAction,
+    _action: DeleteData,
+    _original_action: Action,
     _original_dino: Dino,
 ) -> ExternResult<ValidateCallbackResult> {
     Ok(ValidateCallbackResult::Invalid(
@@ -57,7 +54,7 @@ pub fn validate_delete_dino(
 }
 
 pub fn validate_create_link_all_dinos(
-    _action: CreateLink,
+    _action: CreateLinkData,
     _base_address: AnyLinkableHash,
     target_address: AnyLinkableHash,
     _tag: LinkTag,
@@ -81,8 +78,8 @@ pub fn validate_create_link_all_dinos(
 }
 
 pub fn validate_delete_link_all_dinos(
-    _action: DeleteLink,
-    _original_action: CreateLink,
+    _action: DeleteLinkData,
+    _original_action: CreateLinkData,
     _base: AnyLinkableHash,
     _target: AnyLinkableHash,
     _tag: LinkTag,

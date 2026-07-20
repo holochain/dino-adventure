@@ -12,7 +12,7 @@ pub struct Nest {
 }
 
 pub fn validate_create_nest_batch(
-    _action: EntryCreationAction,
+    _action: Action,
     _nest_batch: NestBatch,
 ) -> ExternResult<ValidateCallbackResult> {
     // TODO: add the appropriate validation rules
@@ -20,9 +20,9 @@ pub fn validate_create_nest_batch(
 }
 
 pub fn validate_update_nest_batch(
-    _action: Update,
+    _action: UpdateData,
     _nest_batch: NestBatch,
-    _original_action: EntryCreationAction,
+    _original_action: Action,
     _original_nest_batch: NestBatch,
 ) -> ExternResult<ValidateCallbackResult> {
     Ok(ValidateCallbackResult::Invalid(
@@ -31,8 +31,8 @@ pub fn validate_update_nest_batch(
 }
 
 pub fn validate_delete_nest_batch(
-    _action: Delete,
-    _original_action: EntryCreationAction,
+    _action: DeleteData,
+    _original_action: Action,
     _original_nest_batch: NestBatch,
 ) -> ExternResult<ValidateCallbackResult> {
     Ok(ValidateCallbackResult::Invalid(
@@ -41,7 +41,8 @@ pub fn validate_delete_nest_batch(
 }
 
 pub fn validate_create_link_adventure_nest_batch(
-    action: CreateLink,
+    action_header: ActionHeader,
+    _action: CreateLinkData,
     base_address: AnyLinkableHash,
     target_address: AnyLinkableHash,
     _tag: LinkTag,
@@ -61,7 +62,7 @@ pub fn validate_create_link_adventure_nest_batch(
             "Linked action must reference an entry".to_string()
         )))?;
 
-    if &action.author != record.action().author() {
+    if &action_header.author != record.action().author() {
         return Err(wasm_error!(WasmErrorInner::Guest(
             "Author of the link must be the same as the author of the adventure".to_string()
         )));
@@ -82,7 +83,7 @@ pub fn validate_create_link_adventure_nest_batch(
             "Linked action must reference an entry".to_string()
         )))?;
 
-    if &action.author != record.action().author() {
+    if &action_header.author != record.action().author() {
         return Err(wasm_error!(WasmErrorInner::Guest(
             "Author of the link must be the same as the author of the nest batch".to_string()
         )));
@@ -92,8 +93,8 @@ pub fn validate_create_link_adventure_nest_batch(
 }
 
 pub fn validate_delete_link_adventure_nest_batch(
-    _action: DeleteLink,
-    _original_action: CreateLink,
+    _action: DeleteLinkData,
+    _original_action: CreateLinkData,
     _base: AnyLinkableHash,
     _target: AnyLinkableHash,
     _tag: LinkTag,
@@ -103,18 +104,15 @@ pub fn validate_delete_link_adventure_nest_batch(
     ))
 }
 
-pub fn validate_create_nest(
-    _action: EntryCreationAction,
-    _nest: Nest,
-) -> ExternResult<ValidateCallbackResult> {
+pub fn validate_create_nest(_action: Action, _nest: Nest) -> ExternResult<ValidateCallbackResult> {
     // TODO: add the appropriate validation rules
     Ok(ValidateCallbackResult::Valid)
 }
 
 pub fn validate_update_nest(
-    _action: Update,
+    _action: UpdateData,
     _nest: Nest,
-    _original_action: EntryCreationAction,
+    _original_action: Action,
     _original_nest: Nest,
 ) -> ExternResult<ValidateCallbackResult> {
     Ok(ValidateCallbackResult::Invalid(
@@ -123,8 +121,8 @@ pub fn validate_update_nest(
 }
 
 pub fn validate_delete_nest(
-    _action: Delete,
-    _original_action: EntryCreationAction,
+    _action: DeleteData,
+    _original_action: Action,
     _original_nest: Nest,
 ) -> ExternResult<ValidateCallbackResult> {
     Ok(ValidateCallbackResult::Invalid(
@@ -133,7 +131,8 @@ pub fn validate_delete_nest(
 }
 
 pub fn validate_create_link_nest_batch_nest(
-    action: CreateLink,
+    action_header: ActionHeader,
+    _action: CreateLinkData,
     base_address: AnyLinkableHash,
     target_address: AnyLinkableHash,
     _tag: LinkTag,
@@ -153,7 +152,7 @@ pub fn validate_create_link_nest_batch_nest(
             "Linked action must reference an entry".to_string()
         )))?;
 
-    if &action.author != record.action().author() {
+    if &action_header.author != record.action().author() {
         return Err(wasm_error!(WasmErrorInner::Guest(
             "Author of the link must be the same as the author of the nest batch".to_string()
         )));
@@ -174,7 +173,7 @@ pub fn validate_create_link_nest_batch_nest(
             "Linked action must reference an entry".to_string()
         )))?;
 
-    if &action.author != record.action().author() {
+    if &action_header.author != record.action().author() {
         return Err(wasm_error!(WasmErrorInner::Guest(
             "Author of the link must be the same as the author of the nest".to_string()
         )));
@@ -184,8 +183,8 @@ pub fn validate_create_link_nest_batch_nest(
 }
 
 pub fn validate_delete_link_nest_batch_nest(
-    _action: DeleteLink,
-    _original_action: CreateLink,
+    _action: DeleteLinkData,
+    _original_action: CreateLinkData,
     _base: AnyLinkableHash,
     _target: AnyLinkableHash,
     _tag: LinkTag,
