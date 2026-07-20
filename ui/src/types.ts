@@ -2,40 +2,35 @@ import type {
   ActionHash,
   ActionHashB64,
   AgentPubKey,
-  Create,
-  CreateLink,
-  Delete,
-  DeleteLink,
   SignedActionHashed,
   Timestamp,
-  Update,
 } from "@holochain/client";
 
 export type DinoAdventureSignal =
   | {
       type: "EntryCreated";
-      action: SignedActionHashed<Create>;
+      action: SignedActionHashed;
       app_entry: EntryTypes;
     }
   | {
       type: "EntryUpdated";
-      action: SignedActionHashed<Update>;
+      action: SignedActionHashed;
       app_entry: EntryTypes;
       original_app_entry: EntryTypes;
     }
   | {
       type: "EntryDeleted";
-      action: SignedActionHashed<Delete>;
+      action: SignedActionHashed;
       original_app_entry: EntryTypes;
     }
   | {
       type: "LinkCreated";
-      action: SignedActionHashed<CreateLink>;
+      action: SignedActionHashed;
       link_type: string;
     }
   | {
       type: "LinkDeleted";
-      action: SignedActionHashed<DeleteLink>;
+      action: SignedActionHashed;
       link_type: string;
     }
   | {

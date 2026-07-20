@@ -90,7 +90,7 @@ const fetchMyAdventures = async (): Promise<void> => {
     "dino_adventure:EntryCreated:Adventure",
     (adventure: Adventure, action: SignedActionHashed | null) => {
       if (
-        encodeHashToBase64(action!.hashed.content.author) !==
+        encodeHashToBase64(action!.hashed.content.header.author) !==
         getAgentPubKeyB64()
       ) {
         return;
@@ -99,8 +99,8 @@ const fetchMyAdventures = async (): Promise<void> => {
       myAdventuresState[encodeHashToBase64(action!.hashed.hash)] = {
         adventure: adventure,
         address: action!.hashed.hash,
-        created_at: action!.hashed.content.timestamp,
-        author: action!.hashed.content.author,
+        created_at: action!.hashed.content.header.timestamp,
+        author: action!.hashed.content.header.author,
       };
     },
   );

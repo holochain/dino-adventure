@@ -73,10 +73,10 @@ const fetchDinos = async (): Promise<void> => {
   signalHandler.addSignalHandler(
     "dino_adventure:EntryCreated:Dino",
     (dino: Dino, action: SignedActionHashed | null) => {
-      dinoState[encodeHashToBase64(action!.hashed.content.author)] = {
+      dinoState[encodeHashToBase64(action!.hashed.content.header.author)] = {
         dino: dino,
         address: action!.hashed.hash,
-        author: action!.hashed.content.author,
+        author: action!.hashed.content.header.author,
       };
     },
   );

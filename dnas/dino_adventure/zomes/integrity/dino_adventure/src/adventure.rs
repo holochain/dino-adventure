@@ -7,7 +7,7 @@ pub struct Adventure {
 }
 
 pub fn validate_create_adventure(
-    _action: EntryCreationAction,
+    _action: Action,
     adventure: Adventure,
 ) -> ExternResult<ValidateCallbackResult> {
     if adventure.participants.len() < 2 {
@@ -20,9 +20,9 @@ pub fn validate_create_adventure(
 }
 
 pub fn validate_update_adventure(
-    _action: Update,
+    _action: UpdateData,
     _adventure: Adventure,
-    _original_action: EntryCreationAction,
+    _original_action: Action,
     _original_adventure: Adventure,
 ) -> ExternResult<ValidateCallbackResult> {
     Ok(ValidateCallbackResult::Invalid(
@@ -31,8 +31,8 @@ pub fn validate_update_adventure(
 }
 
 pub fn validate_delete_adventure(
-    _action: Delete,
-    _original_action: EntryCreationAction,
+    _action: DeleteData,
+    _original_action: Action,
     _original_adventure: Adventure,
 ) -> ExternResult<ValidateCallbackResult> {
     Ok(ValidateCallbackResult::Invalid(
@@ -41,7 +41,7 @@ pub fn validate_delete_adventure(
 }
 
 pub fn validate_create_link_all_adventures(
-    _action: CreateLink,
+    _action: CreateLinkData,
     _base_address: AnyLinkableHash,
     target_address: AnyLinkableHash,
     _tag: LinkTag,
@@ -65,8 +65,8 @@ pub fn validate_create_link_all_adventures(
 }
 
 pub fn validate_delete_link_all_adventures(
-    _action: DeleteLink,
-    _original_action: CreateLink,
+    _action: DeleteLinkData,
+    _original_action: CreateLinkData,
     _base: AnyLinkableHash,
     _target: AnyLinkableHash,
     _tag: LinkTag,
@@ -77,7 +77,8 @@ pub fn validate_delete_link_all_adventures(
 }
 
 pub fn validate_create_link_my_adventures(
-    action: CreateLink,
+    action_header: ActionHeader,
+    _action: CreateLinkData,
     _base_address: AnyLinkableHash,
     target_address: AnyLinkableHash,
     _tag: LinkTag,
@@ -97,7 +98,7 @@ pub fn validate_create_link_my_adventures(
             "Linked action must reference an entry".to_string()
         )))?;
 
-    if &action.author != record.signed_action.action().author() {
+    if &action_header.author != record.signed_action.action().author() {
         return Err(wasm_error!(WasmErrorInner::Guest(
             "Only the author can link their own adventure".to_string()
         )));
@@ -107,13 +108,15 @@ pub fn validate_create_link_my_adventures(
 }
 
 pub fn validate_delete_link_my_adventures(
-    action: DeleteLink,
-    original_action: CreateLink,
+    action_header: ActionHeader,
+    _action: DeleteLinkData,
+    original_action_header: ActionHeader,
+    _original_action: CreateLinkData,
     _base: AnyLinkableHash,
     _target: AnyLinkableHash,
     _tag: LinkTag,
 ) -> ExternResult<ValidateCallbackResult> {
-    if action.author != original_action.author {
+    if action_header.author != original_action_header.author {
         return Err(wasm_error!(WasmErrorInner::Guest(
             "Only the author can delete their own adventure".to_string()
         )));

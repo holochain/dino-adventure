@@ -18,4 +18,5 @@ rand = { workspace = true }
 holochain = { workspace = true, features = ["test_utils"] }
 holochain_client = { workspace = true }
 holochain_types = { workspace = true }
+holochain_trace = { workspace = true }
 tokio = { workspace = true }
