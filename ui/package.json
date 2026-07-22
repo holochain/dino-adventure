@@ -10,7 +10,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@holochain/client": "^0.20.7",
+    "@holochain/client": "^0.20.8",
     "@msgpack/msgpack": "^3.1.1"
   },
   "devDependencies": {
