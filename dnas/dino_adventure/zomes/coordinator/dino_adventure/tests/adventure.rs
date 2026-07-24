@@ -142,7 +142,7 @@ async fn end_my_adventure() {
     create_read_output2.sort_by_key(|a| a.created_at);
     assert_eq!(vec![record3.clone()], create_read_output2);
 
-    // Alice tries to unlink bob's adventure (should fail)
+    // Alice tries to unlink Bob's adventure (should fail)
     let result: Result<(), _> = alice_conductor
         .call_fallible(&alice_zome, "unlink_my_adventure", record3.address.clone())
         .await;
