@@ -37,11 +37,11 @@ async fn create_and_get_all_dinos() {
     let bob_zome = cells[1].zome("dino_adventure");
 
     let sample1 = Dino {
-        name: "dino 1".to_string(),
+        name: "Dino 1".to_string(),
         dino_kind: DinoKind::Apatosaurus,
     };
     let sample2 = Dino {
-        name: "dino 2".to_string(),
+        name: "Dino 2".to_string(),
         dino_kind: DinoKind::Apatosaurus,
     };
 
