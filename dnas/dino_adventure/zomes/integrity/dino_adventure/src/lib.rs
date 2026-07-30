@@ -69,11 +69,7 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
     match op.flattened::<EntryTypes, LinkTypes>()? {
         FlatOp::CreateEntry(create_entry) => match create_entry {
             OpEntry::CreateEntry { app_entry, action } => {
-                let action: Action = action.into();
-                let create_action: Result<TypedAction<EntryCreationData>, WrongActionError> =
-                    action.try_into();
-                let create_action =
-                    create_action.map_err(|e| wasm_error!(WasmErrorInner::Guest(e.to_string())))?;
+                let create_action: TypedAction<EntryCreationData> = action.into();
 
                 match app_entry {
                     EntryTypes::Dino(dino) => validate_create_dino(create_action, dino),
@@ -89,11 +85,7 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
             OpEntry::UpdateEntry {
                 app_entry, action, ..
             } => {
-                let action: Action = action.into();
-                let create_action: Result<TypedAction<EntryCreationData>, WrongActionError> =
-                    action.try_into();
-                let create_action =
-                    create_action.map_err(|e| wasm_error!(WasmErrorInner::Guest(e.to_string())))?;
+                let create_action: TypedAction<EntryCreationData> = action.into();
 
                 match app_entry {
                     EntryTypes::Dino(dino) => validate_create_dino(create_action, dino),
@@ -110,20 +102,15 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
         },
         FlatOp::Update(update_entry) => match update_entry {
             OpUpdate::Entry { app_entry, action } => {
-                let original_action = must_get_action(action.data.original_action_address.clone())?
-                    .action()
-                    .to_owned();
-
-                let original_action: Result<TypedAction<EntryCreationData>, WrongActionError> =
-                    original_action.try_into();
-                let original_action = original_action
-                    .map_err(|e| wasm_error!(WasmErrorInner::Guest(e.to_string())))?;
+                let original_record =
+                    must_get_valid_record(action.original_action_address.clone())?;
+                let original_action = TypedAction::<EntryCreationData>::try_from_action(
+                    original_record.action().clone(),
+                )?;
 
                 match app_entry {
                     EntryTypes::Dino(dino) => {
-                        let original_app_entry =
-                            must_get_valid_record(action.data.original_action_address.clone())?;
-                        let original_dino = match Dino::try_from(original_app_entry) {
+                        let original_dino = match Dino::try_from(original_record) {
                             Ok(entry) => entry,
                             Err(e) => {
                                 return Ok(ValidateCallbackResult::Invalid(format!(
@@ -134,9 +121,7 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                         validate_update_dino(action, dino, original_action, original_dino)
                     }
                     EntryTypes::Adventure(adventure) => {
-                        let original_app_entry =
-                            must_get_valid_record(action.data.original_action_address.clone())?;
-                        let original_adventure = match Adventure::try_from(original_app_entry) {
+                        let original_adventure = match Adventure::try_from(original_record) {
                             Ok(entry) => entry,
                             Err(e) => {
                                 return Ok(ValidateCallbackResult::Invalid(format!(
@@ -152,9 +137,7 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                         )
                     }
                     EntryTypes::NestBatch(nest_batch) => {
-                        let original_app_entry =
-                            must_get_valid_record(action.data.original_action_address.clone())?;
-                        let original_nest_batch = match NestBatch::try_from(original_app_entry) {
+                        let original_nest_batch = match NestBatch::try_from(original_record) {
                             Ok(entry) => entry,
                             Err(e) => {
                                 return Ok(ValidateCallbackResult::Invalid(format!(
@@ -170,9 +153,7 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                         )
                     }
                     EntryTypes::Nest(nest) => {
-                        let original_app_entry =
-                            must_get_valid_record(action.data.original_action_address.clone())?;
-                        let original_nest = match Nest::try_from(original_app_entry) {
+                        let original_nest = match Nest::try_from(original_record) {
                             Ok(entry) => entry,
                             Err(e) => {
                                 return Ok(ValidateCallbackResult::Invalid(format!(
@@ -187,13 +168,10 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
             _ => Ok(ValidateCallbackResult::Valid),
         },
         FlatOp::Delete(OpDelete { action }) => {
-            let original_record = must_get_valid_record(action.data.deletes_address.clone())?;
-
-            let original_record_action = original_record.action().clone();
-            let original_action: Result<TypedAction<EntryCreationData>, WrongActionError> =
-                original_record_action.try_into();
-            let original_action =
-                original_action.map_err(|e| wasm_error!(WasmErrorInner::Guest(e.to_string())))?;
+            let original_record = must_get_valid_record(action.deletes_address.clone())?;
+            let original_action = TypedAction::<EntryCreationData>::try_from_action(
+                original_record.action().clone(),
+            )?;
 
             let app_entry_type = match original_action.entry_type() {
                 EntryType::App(app_entry_type) => app_entry_type,
@@ -267,11 +245,7 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                 // If you want to optimize performance, you can remove the validation for an entry type here and keep it in `StoreEntry`
                 // Notice that doing so will cause `must_get_valid_record` for this record to return a valid record even if the `StoreEntry` validation failed
                 OpRecord::CreateEntry { app_entry, action } => {
-                    let action: Action = action.into();
-                    let action: Result<TypedAction<EntryCreationData>, WrongActionError> =
-                        action.try_into();
-                    let action =
-                        action.map_err(|e| wasm_error!(WasmErrorInner::Guest(e.to_string())))?;
+                    let action: TypedAction<EntryCreationData> = action.into();
 
                     match app_entry {
                         EntryTypes::Dino(dino) => validate_create_dino(action, dino),
@@ -291,18 +265,12 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                     app_entry, action, ..
                 } => {
                     let original_record =
-                        must_get_valid_record(action.data.original_action_address.clone())?;
-                    let original_action = original_record.action().clone();
-                    let original_action: Result<TypedAction<EntryCreationData>, WrongActionError> =
-                        original_action.try_into();
-                    let original_action = original_action
-                        .map_err(|e| wasm_error!(WasmErrorInner::Guest(e.to_string())))?;
+                        must_get_valid_record(action.original_action_address.clone())?;
+                    let original_action = TypedAction::<EntryCreationData>::try_from_action(
+                        original_record.action().clone(),
+                    )?;
 
-                    let creation_action: Action = action.clone().into();
-                    let creation_action: Result<TypedAction<EntryCreationData>, WrongActionError> =
-                        creation_action.try_into();
-                    let creation_action = creation_action
-                        .map_err(|e| wasm_error!(WasmErrorInner::Guest(e.to_string())))?;
+                    let creation_action: TypedAction<EntryCreationData> = action.clone().into();
 
                     match app_entry {
                         EntryTypes::Dino(dino) => {
@@ -329,10 +297,8 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                             }
                         }
                         EntryTypes::Adventure(adventure) => {
-                            let result = validate_create_adventure(
-                                creation_action.clone(),
-                                adventure.clone(),
-                            )?;
+                            let result =
+                                validate_create_adventure(creation_action, adventure.clone())?;
                             if let ValidateCallbackResult::Valid = result {
                                 let original_adventure: Option<Adventure> = original_record
                                     .entry()
@@ -417,13 +383,10 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                 // If you want to optimize performance, you can remove the validation for an entry type here and keep it in `RegisterDelete`
                 // Notice that doing so will cause `must_get_valid_record` for this record to return a valid record even if the `RegisterDelete` validation failed
                 OpRecord::DeleteEntry { action, .. } => {
-                    let original_record =
-                        must_get_valid_record(action.data.deletes_address.clone())?;
-                    let original_action = original_record.action().clone();
-                    let original_action: Result<TypedAction<EntryCreationData>, WrongActionError> =
-                        original_action.try_into();
-                    let original_action = original_action
-                        .map_err(|e| wasm_error!(WasmErrorInner::Guest(e.to_string())))?;
+                    let original_record = must_get_valid_record(action.deletes_address.clone())?;
+                    let original_action = TypedAction::<EntryCreationData>::try_from_action(
+                        original_record.action().clone(),
+                    )?;
 
                     let app_entry_type = match original_action.entry_type() {
                         EntryType::App(app_entry_type) => app_entry_type,
@@ -485,24 +448,13 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                 // If you want to optimize performance, you can remove the validation for an entry type here and keep it in `RegisterDeleteLink`
                 // Notice that doing so will cause `must_get_valid_record` for this record to return a valid record even if the `RegisterDeleteLink` validation failed
                 OpRecord::DeleteLink { action } => {
-                    let record = must_get_valid_record(action.data.link_add_address.clone())?;
-                    let create_link = match &record.action().data {
-                        ActionData::CreateLink(create_link) => TypedAction {
-                            header: record.action().header.clone(),
-                            data: create_link.clone(),
-                        },
-                        _ => {
-                            // Holochain enforces this, just have to make the type conversion.
-                            return Ok(ValidateCallbackResult::Invalid(
-                                "The action that a DeleteLink deletes must be a CreateLink"
-                                    .to_string(),
-                            ));
-                        }
-                    };
+                    let record = must_get_valid_record(action.link_add_address.clone())?;
+                    let create_link =
+                        TypedAction::<CreateLinkData>::try_from_action(record.action().clone())?;
 
                     let link_type = match LinkTypes::from_type(
-                        create_link.data.zome_index,
-                        create_link.data.link_type,
+                        create_link.zome_index,
+                        create_link.link_type,
                     )? {
                         Some(lt) => lt,
                         None => {
@@ -539,23 +491,13 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
             }
         }
         FlatOp::AgentActivity(agent_activity) => match agent_activity {
-            ref create @ OpActivity::CreateAgent { ref action } => {
+            OpActivity::CreateAgent { agent, action } => {
                 let prev = action
                     .prev_action()
                     .ok_or_else(|| {
                         wasm_error!(WasmErrorInner::Guest("expected a prior action".into()))
                     })?
                     .clone();
-
-                let agent = match create.agent() {
-                    Some(agent) => agent,
-                    None => {
-                        // Also expected to be checked by Holochain
-                        return Err(wasm_error!(WasmErrorInner::Guest(
-                            "expected an agent key as the create data".into()
-                        )));
-                    }
-                };
 
                 let previous_action = must_get_action(prev)?;
                 match &previous_action.action().data {

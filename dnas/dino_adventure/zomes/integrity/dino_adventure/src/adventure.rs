@@ -90,7 +90,7 @@ pub fn validate_create_link_my_adventures(
             "Linked action must reference an entry".to_string()
         )))?;
 
-    if &action.header.author != record.signed_action.action().author() {
+    if &action.header.author != record.action().author() {
         return Err(wasm_error!(WasmErrorInner::Guest(
             "Only the author can link their own adventure".to_string()
         )));
