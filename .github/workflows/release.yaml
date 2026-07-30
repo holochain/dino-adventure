@@ -32,6 +32,7 @@ jobs:
               --repo="$GITHUB_REPOSITORY" \
               --title="${GITHUB_REPOSITORY#*/} ${tag#v}" \
               --generate-notes
+              --draft
 
       - name: Attach hApp to release
         env:
@@ -46,3 +47,14 @@ jobs:
           
           gh release upload ${{ env.tag }} dino-adventure-${{ env.tag }}.happ --clobber
           gh release upload ${{ env.tag }} dino-adventure-${{ env.tag }}.webhapp --clobber
+
+      - name: Update release status
+        env:
+          GH_TOKEN: ${{ github.token }}
+          tag: ${{ github.ref_name }}
+        run: |
+          if [[ $tag =~ v.*-.* ]]; then
+            gh release edit --prerelease "$tag"
+          else
+            gh release edit --latest "$tag"
+          fi
