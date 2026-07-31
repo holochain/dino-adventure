@@ -20,7 +20,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.26.0",
-    "@holochain/hc-spin": "0.700.0-rc.1",
+    "@holochain/hc-spin": "0.700.0",
     "concurrently": "^9.1.0",
     "get-port-cli": "^3.0.0",
     "prettier": "^3.5.3",
@@ -29,7 +29,7 @@
     "typescript-eslint": "^8.32.1"
   },
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=24.0.0"
   },
   "hcScaffold": {
     "template": "svelte"
