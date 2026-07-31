@@ -48,13 +48,16 @@ jobs:
           gh release upload ${{ env.tag }} dino-adventure-${{ env.tag }}.happ --clobber
           gh release upload ${{ env.tag }} dino-adventure-${{ env.tag }}.webhapp --clobber
 
-      - name: Update release status
+      - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
           tag: ${{ github.ref_name }}
         run: |
+          # The release is created as a draft so the artifacts can be attached
+          # before it becomes visible. GitHub rejects `--latest` on a draft, so
+          # publishing and setting the status have to happen in the same edit.
           if [[ $tag =~ v.*-.* ]]; then
-            gh release edit --prerelease "$tag"
+            gh release edit "$tag" --draft=false --prerelease
           else
-            gh release edit --latest "$tag"
+            gh release edit "$tag" --draft=false --latest
           fi
