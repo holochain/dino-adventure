@@ -31,7 +31,7 @@ jobs:
           gh release create "$tag" \
               --repo="$GITHUB_REPOSITORY" \
               --title="${GITHUB_REPOSITORY#*/} ${tag#v}" \
-              --generate-notes
+              --generate-notes \
               --draft
 
       - name: Attach hApp to release
