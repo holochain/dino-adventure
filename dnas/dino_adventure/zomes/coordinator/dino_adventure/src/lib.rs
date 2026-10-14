@@ -13,11 +13,11 @@ pub mod types;
 pub fn init() -> ExternResult<InitCallbackResult> {
     let mut listed = HashSet::new();
     listed.insert((zome_info()?.name, "recv_remote_signal".into()));
-    create_cap_grant(CapGrantEntry {
-        tag: "".to_string(),
-        access: CapAccess::Unrestricted,
-        functions: GrantedFunctions::Listed(listed),
-    })?;
+    create_cap_grant(CapGrantEntry::new_zome_call_grant(
+        "".to_string(),
+        GrantConstraint::Unrestricted,
+        GrantedFunctions::Listed(listed),
+    ))?;
 
     Ok(InitCallbackResult::Pass)
 }
